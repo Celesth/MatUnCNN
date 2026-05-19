@@ -1,6 +1,7 @@
 package com.matuncnn.app.processor
 
 import android.util.Log
+import com.matuncnn.app.util.ExecHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -8,12 +9,8 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.io.OutputStream
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class ImageProcessor {
-    private val executorService: ExecutorService = Executors.newSingleThreadExecutor()
     private var currentProcess: Process? = null
     private var currentJob: Job? = null
 
@@ -38,41 +35,43 @@ class ImageProcessor {
             Log.d("ImageProcessor", "Executing command: $command")
             Log.d("ImageProcessor", "Working dir: $workingDir")
 
-            // Verify working dir exists and has binaries
             val wd = File(workingDir)
             if (!wd.exists()) {
                 callback.onError("Working directory does not exist: $workingDir")
                 callback.onCompleted("", false)
                 return@withContext
             }
-            val files = wd.listFiles()
-            Log.d("ImageProcessor", "Files in work dir: ${files?.map { it.name }?.joinToString(", ") ?: "empty"}")
 
-            val processBuilder = ProcessBuilder("sh")
-            processBuilder.directory(wd)
-            processBuilder.redirectErrorStream(true)
-
-            currentProcess = processBuilder.start()
-
-            // Make all files in the work dir executable using Java API
-            wd.listFiles()?.forEach { file ->
-                if (file.isFile) file.setExecutable(true)
+            val parts = command.trim().split("\\s+".toRegex())
+            if (parts.isEmpty()) {
+                callback.onError("Empty command")
+                callback.onCompleted("", false)
+                return@withContext
             }
 
-            val os: OutputStream = currentProcess!!.outputStream
-            val setupCmd = buildString {
-                appendLine("export LD_LIBRARY_PATH=$workingDir")
-                appendLine("cd $workingDir")
-                appendLine("ls -la . 2>&1")
+            val binaryPath = parts[0]
+            val binaryFile = if (binaryPath.startsWith("./")) {
+                File(workingDir, binaryPath.removePrefix("./"))
+            } else {
+                File(binaryPath)
             }
-            os.write(setupCmd.toByteArray())
+
+            if (!binaryFile.exists()) {
+                callback.onError("Binary not found: ${binaryFile.absolutePath}")
+                callback.onCompleted("", false)
+                return@withContext
+            }
+
+            val args = parts.drop(1)
+            val env = mutableMapOf<String, String>()
             if (extraSetup.isNotBlank()) {
-                os.write((extraSetup + "\n").toByteArray())
+                extraSetup.lineSequence().forEach { line ->
+                    val eq = line.indexOf('=')
+                    if (eq > 0) env[line.substring(0, eq)] = line.substring(eq + 1)
+                }
             }
-            os.write((command + "\n").toByteArray())
-            os.write("exit\n".toByteArray())
-            os.flush()
-            os.close()
+
+            currentProcess = ExecHelper.exec(binaryFile, args, workingDir, env)
 
             val reader = BufferedReader(InputStreamReader(currentProcess!!.inputStream))
             var line: String?
@@ -114,6 +113,6 @@ class ImageProcessor {
     }
 
     fun shutdown() {
-        executorService.shutdownNow()
+        cancelCurrentTask()
     }
 }
