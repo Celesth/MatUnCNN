@@ -24,8 +24,9 @@ object AssetsDownloader {
         return withContext(Dispatchers.IO) {
             val dir = File(workDir)
             if (!dir.exists() || !dir.isDirectory) return@withContext true
-            val contents = dir.listFiles()?.filter { !it.name.endsWith(".param") && !it.name.endsWith(".xml") }
-            contents.isNullOrEmpty()
+            val contents = dir.listFiles()
+            if (contents.isNullOrEmpty()) return@withContext true
+            contents.any { it.isFile && !it.name.endsWith(".param") && !it.name.endsWith(".xml") }.not()
         }
     }
 
@@ -62,7 +63,7 @@ object AssetsDownloader {
                     onProgress(DownloadProgress(
                         bytesDownloaded = totalRead,
                         totalBytes = totalBytes,
-                        message = "Downloading ($pct%)..."
+                        message = "Downloading models ($pct%)..."
                     ))
                 }
             }
@@ -73,28 +74,17 @@ object AssetsDownloader {
             onProgress(DownloadProgress(
                 bytesDownloaded = totalRead,
                 totalBytes = totalBytes,
-                message = "Extracting..."
+                message = "Extracting models..."
             ))
 
             extractZip(zipFile, workDir)
-
             zipFile.delete()
-
-            File(workDir, "models-MNN").let { mnnDir ->
-                if (mnnDir.isDirectory) {
-                    mnnDir.listFiles()?.forEach { it.setExecutable(true) }
-                }
-            }
+            setExecutableRecursive(File(workDir))
 
             onProgress(DownloadProgress(
-                bytesDownloaded = totalRead,
-                totalBytes = totalBytes,
-                message = "Setting permissions...",
-                isFinished = true
+                isFinished = true,
+                message = "Done!"
             ))
-
-            val chmodCmd = arrayOf("sh", "-c", "cd $workDir && chmod -R 777 . 2>/dev/null")
-            Runtime.getRuntime().exec(chmodCmd).waitFor()
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -116,12 +106,19 @@ object AssetsDownloader {
                     target.outputStream().use { fos ->
                         zis.copyTo(fos)
                     }
-                    if (entry.name.endsWith(".so") || !entry.name.contains('.')) {
-                        target.setExecutable(true)
-                    }
                 }
                 zis.closeEntry()
                 entry = zis.nextEntry
+            }
+        }
+    }
+
+    private fun setExecutableRecursive(dir: File) {
+        dir.listFiles()?.forEach { file ->
+            if (file.isDirectory) {
+                setExecutableRecursive(file)
+            } else {
+                file.setExecutable(true)
             }
         }
     }

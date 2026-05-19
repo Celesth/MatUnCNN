@@ -31,3 +31,6 @@ app/src/main/assets/realsr/resize-ncnn
 
 # Release asset bundles (large)
 realsr-assets-*.zip
+
+# Runtime logs
+rlogs/

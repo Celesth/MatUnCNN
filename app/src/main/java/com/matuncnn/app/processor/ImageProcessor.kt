@@ -54,12 +54,15 @@ class ImageProcessor {
 
             currentProcess = processBuilder.start()
 
+            // Make all files in the work dir executable using Java API
+            wd.listFiles()?.forEach { file ->
+                if (file.isFile) file.setExecutable(true)
+            }
+
             val os: OutputStream = currentProcess!!.outputStream
-            // Make all files in the work dir executable
             val setupCmd = buildString {
                 appendLine("export LD_LIBRARY_PATH=$workingDir")
                 appendLine("cd $workingDir")
-                appendLine("chmod -R 777 . 2>/dev/null")
                 appendLine("ls -la . 2>&1")
             }
             os.write(setupCmd.toByteArray())

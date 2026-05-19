@@ -3,9 +3,7 @@ package com.matuncnn.app.viewmodel
 import android.app.Application
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +16,9 @@ import com.matuncnn.app.util.AssetsCopyer
 import com.matuncnn.app.util.AssetsDownloader
 import com.matuncnn.app.util.DownloadProgress
 import com.matuncnn.app.util.ProgressLogHelper
+import com.matuncnn.app.util.UpscaleCache
 import com.matuncnn.app.util.UriUtils
+import com.matuncnn.app.util.VulkanHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +32,7 @@ import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 data class MainUiState(
     val isInitialized: Boolean = false,
@@ -52,7 +53,8 @@ data class MainUiState(
     val commandText: String = "",
     val isMultipleFiles: Boolean = false,
     val selectedUris: List<Uri> = emptyList(),
-    val downloadProgress: DownloadProgress? = null
+    val downloadProgress: DownloadProgress? = null,
+    val hasVulkan: Boolean = true
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -66,7 +68,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val settingsFlow = settingsRepo.settingsFlow
 
-    private var assetsCopied = false
+    private val assetsReady = AtomicBoolean(false)
 
     init {
         viewModelScope.launch {
@@ -75,33 +77,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun initializeApp() {
-        val app = getApplication<MatUnCnnApp>()
+        if (assetsReady.get()) return
+
         val context = getApplication<Application>()
+        val app = getApplication<MatUnCnnApp>()
 
-        app.ensureWorkDir()
+        val ok = withContext(Dispatchers.IO) {
+            app.ensureWorkDir()
 
-        // Check if download is needed
-        val needDownload = withContext(Dispatchers.IO) {
-            AssetsDownloader.needsDownload(app.workDir)
-        }
-
-        if (needDownload) {
-            val result = AssetsDownloader.downloadAndExtract(app.workDir) { progress ->
-                _uiState.update { it.copy(downloadProgress = progress) }
+            if (AssetsDownloader.needsDownload(app.workDir)) {
+                val result = AssetsDownloader.downloadAndExtract(app.workDir) { progress ->
+                    _uiState.update { it.copy(downloadProgress = progress) }
+                }
+                _uiState.update { it.copy(downloadProgress = null) }
+                if (result.isFailure) return@withContext false
             }
-            _uiState.update { it.copy(downloadProgress = null) }
-            if (result.isFailure) return
+
+            AssetsCopyer.releaseAssets(context, "realsr", app.workDir, false)
+            true
+        }
+        if (!ok) return
+
+        val hasVulkan = VulkanHelper.hasVulkan(context.packageManager)
+        if (!hasVulkan) {
+            _uiState.update { it.copy(hasVulkan = false) }
         }
 
-        // Copy bundled assets (param files, xmls that are in APK but not in release bundle)
-        if (!assetsCopied) {
-            withContext(Dispatchers.IO) {
-                AssetsCopyer.releaseAssets(context, "realsr", app.workDir, false)
-                assetsCopied = true
-            }
-        }
-
-        // Load settings
         val settings = settingsRepo.settingsFlow.first()
         val manager = withContext(Dispatchers.Default) {
             val classicalFilters = settings.classicalFilters.split(",")
@@ -127,6 +128,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             manager.getCommandAt(settings.selectCommand)
         }
+
+        assetsReady.set(true)
 
         _uiState.update {
             it.copy(
@@ -244,6 +247,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 .replace("input.png", inputForCommand)
                 .replace("output.png", outputPath)
 
+            // Check cache
+            val cacheKey = UpscaleCache.buildKey(
+                (state.inputUri?.toString() ?: inputFile),
+                cmd,
+                4
+            )
+            val cached = UpscaleCache.get(cacheKey)
+            if (cached != null && File(cached).exists()) {
+                _uiState.update {
+                    it.copy(
+                        outputFilePath = cached,
+                        outputImageExists = true,
+                        statusMessage = "Complete! (cached)"
+                    )
+                }
+                return@launch
+            }
+
             progressLogHelper.reset()
             _uiState.update {
                 it.copy(
@@ -270,6 +291,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
 
                     override fun onCompleted(result: String, success: Boolean) {
+                        if (success) {
+                            UpscaleCache.put(cacheKey, outputPath)
+                        }
                         val summary = progressLogHelper.getCompletionSummary(
                             success,
                             isNcnnCommand = true

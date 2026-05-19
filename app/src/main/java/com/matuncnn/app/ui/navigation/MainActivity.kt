@@ -27,6 +27,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,15 +41,12 @@ import com.matuncnn.app.ui.screens.DownloadScreen
 import com.matuncnn.app.ui.screens.GithubScreen
 import com.matuncnn.app.ui.screens.HomeScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
-import com.matuncnn.app.ui.screens.VideoScreen
 import com.matuncnn.app.ui.theme.MatUnCnnTheme
 import com.matuncnn.app.viewmodel.MainViewModel
-import com.matuncnn.app.viewmodel.VideoViewModel
 
 class MainActivity : ComponentActivity() {
 
     private val mainViewModel: MainViewModel by viewModels()
-    private val videoViewModel: VideoViewModel by viewModels()
 
     private var pendingImageUri: Uri? = null
 
@@ -58,12 +56,6 @@ class MainActivity : ComponentActivity() {
         uri?.let { mainViewModel.setInputImage(it) }
         pendingImageUri?.let { mainViewModel.setInputImage(it) }
         pendingImageUri = null
-    }
-
-    private val videoPickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
-        uri?.let { videoViewModel.selectVideo(it) }
     }
 
     private val storagePermissionLauncher = registerForActivityResult(
@@ -87,9 +79,7 @@ class MainActivity : ComponentActivity() {
             MatUnCnnTheme(themeIndex = themeIndex) {
                 MatUnCnnNavHost(
                     mainViewModel = mainViewModel,
-                    videoViewModel = videoViewModel,
-                    onLaunchImagePicker = { launchImagePicker() },
-                    onLaunchVideoPicker = { launchVideoPicker() }
+                    onLaunchImagePicker = { launchImagePicker() }
                 )
             }
         }
@@ -148,18 +138,12 @@ class MainActivity : ComponentActivity() {
     private fun launchImagePicker() {
         imagePickerLauncher.launch("image/*")
     }
-
-    private fun launchVideoPicker() {
-        videoPickerLauncher.launch("video/*")
-    }
 }
 
 @Composable
 fun MatUnCnnNavHost(
     mainViewModel: MainViewModel,
-    videoViewModel: VideoViewModel,
-    onLaunchImagePicker: () -> Unit,
-    onLaunchVideoPicker: () -> Unit
+    onLaunchImagePicker: () -> Unit
 ) {
     val navController = rememberNavController()
 
@@ -227,12 +211,6 @@ fun MatUnCnnNavHost(
                 HomeScreen(
                     viewModel = mainViewModel,
                     onLaunchImagePicker = onLaunchImagePicker
-                )
-            }
-            composable(Screen.Video.route) {
-                VideoScreen(
-                    viewModel = videoViewModel,
-                    onLaunchVideoPicker = onLaunchVideoPicker
                 )
             }
             composable(Screen.Repo.route) {

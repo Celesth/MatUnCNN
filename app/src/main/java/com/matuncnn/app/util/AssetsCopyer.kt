@@ -30,16 +30,17 @@ object AssetsCopyer {
                     val fullName = if (normAssetsDir.isNotEmpty()) "$normAssetsDir/$name" else name
                     val childNames = assetManager.list(fullName)
                     if (!childNames.isNullOrEmpty()) {
-                        File(normReleaseDir, fullName).mkdirs()
-                        releaseAssets(context, fullName, normReleaseDir, skipExistFile)
+                        val subDir = File(normReleaseDir, name).absolutePath
+                        File(subDir).mkdirs()
+                        releaseAssets(context, fullName, subDir, skipExistFile)
                     } else {
                         val `is` = assetManager.open(fullName)
-                        writeFile("$normReleaseDir/$fullName", `is`, skipExistFile)
+                        writeFile("$normReleaseDir/$name", `is`, skipExistFile)
                     }
                 }
             } else {
                 val `is` = assetManager.open(normAssetsDir)
-                writeFile("$normReleaseDir/$normAssetsDir", `is`, skipExistFile)
+                writeFile("$normReleaseDir/${normAssetsDir.substringAfterLast('/')}", `is`, skipExistFile)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to release assets", e)

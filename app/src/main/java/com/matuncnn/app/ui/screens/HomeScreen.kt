@@ -248,10 +248,18 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                 Spacer(Modifier.height(6.dp))
             }
 
+            if (!state.hasVulkan) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    "Vulkan is not available on this device. ncnn may not work.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusError
+                )
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = { viewModel.startProcessing() },
-                    enabled = !state.isProcessing && state.inputImageExists && state.commandText.isNotBlank(),
+                    enabled = !state.isProcessing && state.inputImageExists && state.commandText.isNotBlank() && state.hasVulkan,
                     modifier = Modifier.weight(1f).height(44.dp)
                 ) {
                     Icon(Icons.Filled.PlayArrow, null, Modifier.size(18.dp))

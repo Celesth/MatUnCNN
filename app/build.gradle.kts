@@ -80,9 +80,6 @@ dependencies {
     // Image loading
     implementation(libs.coil.compose)
 
-    // FFmpeg
-    implementation(libs.ffmpeg.kit.https)
-
     // Preferences
     implementation(libs.datastore.preferences)
 

@@ -393,8 +393,8 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "MatUnCNN - RealSR NCNN Android GUI\n" +
-                                "Upscale images and videos using AI models.\n\n" +
-                                "Built with ncnn, ImageMagick, and ffmpeg.",
+                                "Upscale images using AI models.\n\n" +
+                                "Built with ncnn and ImageMagick.",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
