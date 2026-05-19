@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MatUnCNN</string>
+    <string name="setting">设置</string>
+    <string name="done">完成</string>
+    <string name="busy">处理中</string>
+    <string name="save_setting">保存设置</string>
+    <string name="save_succeed">保存成功!</string>
+    <string name="save_fail">保存失败!</string>
+    <string name="keep_screen">保持屏幕常亮</string>
+    <string name="extra_command">额外命令</string>
+    <string name="use_cpu">CPU模式</string>
+    <string name="save_format">保存格式</string>
+    <string name="general">通用</string>
+    <string name="auto_save">自动保存</string>
+    <string name="help_text">帮助</string>
+    <string name="model">型号</string>
+    <string name="system_version">系统版本</string>
+    <string name="cpu_model">CPU</string>
+    <string name="ram_size">内存</string>
+    <string name="video_processing">视频超分</string>
+    <string name="select_video">选择视频</string>
+    <string name="start_video">开始处理视频</string>
+    <string name="extracting_frames">提取帧中…</string>
+    <string name="upscaling_frames">超分帧中…</string>
+    <string name="reassembling_video">重新合成视频…</string>
+    <string name="video_complete">视频超分完成!</string>
+    <string name="video_failed">视频超分失败</string>
+</resources>

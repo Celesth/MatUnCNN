@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+/app/build
+/app/release/
+/app/Android CLI
+/app/build/outputs/apk/debug
+
+# Large model files (>1MB) — hosted on GitHub Releases
+*.bin
+*.mnn
+*.so
+*.o
+*.a
+app/src/main/assets/realsr/Anime4k
+app/src/main/assets/realsr/magick
+app/src/main/assets/realsr/realcugan-ncnn
+app/src/main/assets/realsr/mnnsr-ncnn
+app/src/main/assets/realsr/waifu2x-ncnn
+app/src/main/assets/realsr/realsr-ncnn
+app/src/main/assets/realsr/GetMNNInfo
+app/src/main/assets/realsr/ffmpeg
