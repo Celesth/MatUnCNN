@@ -28,3 +28,6 @@ app/src/main/assets/realsr/GetMNNInfo
 app/src/main/assets/realsr/ffmpeg
 app/src/main/assets/realsr/srmd-ncnn
 app/src/main/assets/realsr/resize-ncnn
+
+# Release asset bundles (large)
+realsr-assets-*.zip

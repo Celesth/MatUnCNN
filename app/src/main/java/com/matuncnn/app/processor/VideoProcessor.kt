@@ -3,6 +3,9 @@ package com.matuncnn.app.processor
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.FFmpegSession
+import com.arthenica.ffmpegkit.ReturnCode
 import com.matuncnn.app.model.ProcessingState
 import com.matuncnn.app.model.VideoProcessingProgress
 import com.matuncnn.app.util.UriUtils
@@ -46,25 +49,21 @@ class VideoProcessor(private val context: Context) {
             outputDir.mkdirs()
             val outputPath = File(outputDir, outputFileName).absolutePath
 
-            val ffmpegPath = "$workingDir/ffmpeg"
-
             _progress = _progress.copy(
                 state = ProcessingState.EXTRACTING_FRAMES,
                 message = "Analyzing video..."
             )
             onProgress(_progress)
 
-            val fps = getVideoFps(ffmpegPath, inputPath)
-            val totalFrames = getVideoFrameCount(ffmpegPath, inputPath)
-            val hasAudio = hasAudioTrack(ffmpegPath, inputPath)
+            val videoInfo = getVideoInfo(inputPath)
+            val fps = videoInfo.first
+            val totalFrames = videoInfo.second
+            val hasAudio = videoInfo.third
 
             if (hasAudio) {
                 _progress = _progress.copy(message = "Extracting audio...")
                 onProgress(_progress)
-                runFfmpeg(ffmpegPath, listOf(
-                    "-i", inputPath, "-vn", "-acodec", "copy",
-                    "-y", audioFile.absolutePath
-                ), workingDir)
+                runFfmpeg("-i", inputPath, "-vn", "-acodec", "copy", "-y", audioFile.absolutePath)
             }
 
             _progress = _progress.copy(
@@ -74,11 +73,7 @@ class VideoProcessor(private val context: Context) {
             onProgress(_progress)
 
             val framePattern = "${framesDir.absolutePath}/frame_%05d.png"
-            runFfmpeg(ffmpegPath, listOf(
-                "-i", inputPath,
-                "-vf", "fps=$fps",
-                "-y", framePattern
-            ), workingDir)
+            runFfmpeg("-i", inputPath, "-vf", "fps=$fps", "-y", framePattern)
 
             val actualFrames = framesDir.listFiles()
                 ?.filter { it.name.startsWith("frame_") }
@@ -135,26 +130,23 @@ class VideoProcessor(private val context: Context) {
             onProgress(_progress)
 
             val outPattern = "${outputFramesDir.absolutePath}/frame_%05d.png"
-            runFfmpeg(ffmpegPath, listOf(
-                "-framerate", fps.toString(),
-                "-i", outPattern,
-                "-c:v", "libx264",
-                "-pix_fmt", "yuv420p",
-                "-preset", "medium",
-                "-crf", "18",
+            runFfmpeg(
+                "-framerate", fps.toString(), "-i", outPattern,
+                "-c:v", "libx264", "-pix_fmt", "yuv420p",
+                "-preset", "medium", "-crf", "18",
                 "-y", outputPath
-            ), workingDir)
+            )
 
             if (hasAudio && audioFile.exists()) {
                 _progress = _progress.copy(message = "Adding audio...")
                 onProgress(_progress)
                 val withAudio = outputPath.replace(".mp4", "_audio.mp4")
-                runFfmpeg(ffmpegPath, listOf(
+                runFfmpeg(
                     "-i", outputPath, "-i", audioFile.absolutePath,
                     "-c:v", "copy", "-c:a", "aac",
                     "-map", "0:v:0", "-map", "1:a:0",
                     "-shortest", "-y", withAudio
-                ), workingDir)
+                )
                 File(outputPath).delete()
                 File(withAudio).renameTo(File(outputPath))
             }
@@ -177,55 +169,22 @@ class VideoProcessor(private val context: Context) {
         }
     }
 
-    private fun getVideoFps(ffmpegPath: String, inputPath: String): Double {
-        val output = runFfmpegCapture(ffmpegPath, listOf("-i", inputPath), null)
-        Regex("(\\d+\\.?\\d*)\\s*fps").find(output)?.let {
-            return it.groupValues[1].toDoubleOrNull() ?: 30.0
-        }
-        return 30.0
+    private fun getVideoInfo(inputPath: String): Triple<Double, Int, Boolean> {
+        val cmd = "-i $inputPath"
+        val session = FFmpegKit.execute(cmd)
+        val output = session.allLogsAsString ?: ""
+        val fps = Regex("(\\d+\\.?\\d*)\\s*fps").find(output)
+            ?.let { it.groupValues[1].toDoubleOrNull() } ?: 30.0
+        val frames = Regex("(\\d+)\\s*frames?").find(output)
+            ?.let { it.groupValues[1].toIntOrNull() } ?: 0
+        val hasAudio = output.contains("Audio:") || output.contains("aac") || output.contains("mp3")
+        return Triple(fps, frames, hasAudio)
     }
 
-    private fun getVideoFrameCount(ffmpegPath: String, inputPath: String): Int {
-        val output = runFfmpegCapture(ffmpegPath, listOf("-i", inputPath), null)
-        Regex("(\\d+)\\s*frames?").find(output)?.let {
-            return it.groupValues[1].toIntOrNull() ?: 0
-        }
-        return 0
-    }
-
-    private fun hasAudioTrack(ffmpegPath: String, inputPath: String): Boolean {
-        val output = runFfmpegCapture(ffmpegPath, listOf("-i", inputPath), null)
-        return output.contains("Audio:") || output.contains("aac") || output.contains("mp3")
-    }
-
-    private fun runFfmpeg(ffmpegPath: String, args: List<String>, workingDir: String): Boolean {
-        return try {
-            val cmd = listOf(ffmpegPath) + args
-            val pb = ProcessBuilder(cmd)
-            pb.directory(File(workingDir))
-            pb.redirectErrorStream(true)
-            val process = pb.start()
-            process.inputStream.bufferedReader().use { it.readLines() }
-            process.waitFor() == 0
-        } catch (e: Exception) {
-            Log.e("VideoProcessor", "ffmpeg failed", e)
-            false
-        }
-    }
-
-    private fun runFfmpegCapture(ffmpegPath: String, args: List<String>, workingDir: String?): String {
-        return try {
-            val cmd = listOf(ffmpegPath) + args
-            val pb = ProcessBuilder(cmd)
-            if (workingDir != null) pb.directory(File(workingDir))
-            pb.redirectErrorStream(true)
-            val process = pb.start()
-            val output = process.inputStream.bufferedReader().readText()
-            process.waitFor()
-            output
-        } catch (e: Exception) {
-            ""
-        }
+    private fun runFfmpeg(vararg args: String): Boolean {
+        val cmd = args.joinToString(" ")
+        val session = FFmpegKit.execute(cmd)
+        return ReturnCode.isSuccess(session.returnCode)
     }
 
     private fun runShellCommand(command: String, workingDir: String): Boolean {
@@ -249,6 +208,7 @@ class VideoProcessor(private val context: Context) {
 
     fun cancelProcessing() {
         currentJob?.cancel()
+        FFmpegKit.cancel()
     }
 
     private fun cleanup(vararg dirs: File) {

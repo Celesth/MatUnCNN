@@ -36,6 +36,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.matuncnn.app.ui.screens.DownloadScreen
 import com.matuncnn.app.ui.screens.GithubScreen
 import com.matuncnn.app.ui.screens.HomeScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
@@ -161,6 +162,15 @@ fun MatUnCnnNavHost(
     onLaunchVideoPicker: () -> Unit
 ) {
     val navController = rememberNavController()
+
+    val mainState by mainViewModel.uiState.collectAsState()
+    if (mainState.downloadProgress != null) {
+        DownloadScreen(
+            progress = mainState.downloadProgress!!,
+            onRetry = { mainViewModel.retryDownload() }
+        )
+        return
+    }
 
     Scaffold(
         bottomBar = {

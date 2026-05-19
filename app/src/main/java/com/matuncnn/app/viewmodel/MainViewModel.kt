@@ -15,6 +15,8 @@ import com.matuncnn.app.data.SettingsRepository
 import com.matuncnn.app.processor.CommandListManager
 import com.matuncnn.app.processor.ImageProcessor
 import com.matuncnn.app.util.AssetsCopyer
+import com.matuncnn.app.util.AssetsDownloader
+import com.matuncnn.app.util.DownloadProgress
 import com.matuncnn.app.util.ProgressLogHelper
 import com.matuncnn.app.util.UriUtils
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +51,8 @@ data class MainUiState(
     val showCommandInput: Boolean = false,
     val commandText: String = "",
     val isMultipleFiles: Boolean = false,
-    val selectedUris: List<Uri> = emptyList()
+    val selectedUris: List<Uri> = emptyList(),
+    val downloadProgress: DownloadProgress? = null
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -75,11 +78,25 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val app = getApplication<MatUnCnnApp>()
         val context = getApplication<Application>()
 
-        // Copy assets if needed
+        app.ensureWorkDir()
+
+        // Check if download is needed
+        val needDownload = withContext(Dispatchers.IO) {
+            AssetsDownloader.needsDownload(app.workDir)
+        }
+
+        if (needDownload) {
+            val result = AssetsDownloader.downloadAndExtract(app.workDir) { progress ->
+                _uiState.update { it.copy(downloadProgress = progress) }
+            }
+            _uiState.update { it.copy(downloadProgress = null) }
+            if (result.isFailure) return
+        }
+
+        // Copy bundled assets (param files, xmls that are in APK but not in release bundle)
         if (!assetsCopied) {
             withContext(Dispatchers.IO) {
-                app.ensureWorkDir()
-                AssetsCopyer.releaseAssets(context, "realsr", app.workDir, true)
+                AssetsCopyer.releaseAssets(context, "realsr", app.workDir, false)
                 assetsCopied = true
             }
         }
@@ -360,6 +377,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             ).also { it.loadCustomLabels(newSettings.customLabelsJson) }
 
             _uiState.update { it.copy(commandManager = manager) }
+        }
+    }
+
+    fun retryDownload() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(downloadProgress = DownloadProgress(message = "Retrying...")) }
+            initializeApp()
         }
     }
 
