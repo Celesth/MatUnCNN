@@ -14,15 +14,19 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -32,17 +36,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import com.matuncnn.app.ui.screens.GithubScreen
 import com.matuncnn.app.ui.screens.HomeScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
 import com.matuncnn.app.ui.screens.VideoScreen
 import com.matuncnn.app.ui.theme.MatUnCnnTheme
 import com.matuncnn.app.viewmodel.MainViewModel
 import com.matuncnn.app.viewmodel.VideoViewModel
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 class MainActivity : ComponentActivity() {
 
@@ -79,10 +79,10 @@ class MainActivity : ComponentActivity() {
         requestStoragePermissions()
         handleIntent(intent)
 
-        val themeIndex = runBlocking {
-            mainViewModel.settingsFlow.first().themeIndex
-        }
         setContent {
+            val settings by mainViewModel.settingsFlow.collectAsState(initial = null)
+            val themeIndex = settings?.themeIndex ?: 0
+
             MatUnCnnTheme(themeIndex = themeIndex) {
                 MatUnCnnNavHost(
                     mainViewModel = mainViewModel,
@@ -224,6 +224,9 @@ fun MatUnCnnNavHost(
                     viewModel = videoViewModel,
                     onLaunchVideoPicker = onLaunchVideoPicker
                 )
+            }
+            composable(Screen.Repo.route) {
+                GithubScreen()
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = mainViewModel)

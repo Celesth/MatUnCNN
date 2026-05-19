@@ -26,3 +26,5 @@ app/src/main/assets/realsr/waifu2x-ncnn
 app/src/main/assets/realsr/realsr-ncnn
 app/src/main/assets/realsr/GetMNNInfo
 app/src/main/assets/realsr/ffmpeg
+app/src/main/assets/realsr/srmd-ncnn
+app/src/main/assets/realsr/resize-ncnn

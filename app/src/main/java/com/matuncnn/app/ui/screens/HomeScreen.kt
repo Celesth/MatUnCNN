@@ -50,6 +50,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -177,7 +178,15 @@ fun ImageSelectionCard(
 @Composable
 fun CommandSelectorCard(state: MainUiState, viewModel: MainViewModel) {
     var expanded by remember { mutableStateOf(false) }
-    val commands = state.commandManager?.getCommandItems(state.settings.useCustomLabel) ?: emptyList()
+    val commands = remember(state.commandManager, state.settings.useCustomLabel) {
+        state.commandManager?.getCommandItems(state.settings.useCustomLabel) ?: emptyList()
+    }
+    val selectedLabel by remember(commands, state.selectedCommandIndex) {
+        derivedStateOf {
+            if (state.selectedCommandIndex in commands.indices)
+                commands[state.selectedCommandIndex].displayLabel else "Select model"
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -193,8 +202,6 @@ fun CommandSelectorCard(state: MainUiState, viewModel: MainViewModel) {
             Spacer(Modifier.height(8.dp))
 
             ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = !expanded }) {
-                val selectedLabel = if (state.selectedCommandIndex in commands.indices)
-                    commands[state.selectedCommandIndex].displayLabel else "Select model"
                 OutlinedTextField(
                     value = selectedLabel, onValueChange = {}, readOnly = true,
                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
