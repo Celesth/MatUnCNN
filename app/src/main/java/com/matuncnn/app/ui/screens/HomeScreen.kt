@@ -106,16 +106,16 @@ fun HomeScreen(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { ImageSelectionCard(state, onLaunchImagePicker) }
-        item { CommandSelectorCard(state, viewModel) }
-        item { ProcessingControlsCard(state, viewModel) }
+        item(key = "image_select") { ImageSelectionCard(state, onLaunchImagePicker) }
+        item(key = "command_select") { CommandSelectorCard(state, viewModel) }
+        item(key = "processing_controls") { ProcessingControlsCard(state, viewModel) }
 
         if (state.outputImageExists) {
-            item { OutputPreviewCard(state, viewModel, outputSaver) }
+            item(key = "output_preview") { OutputPreviewCard(state, viewModel, outputSaver) }
         }
 
         if (state.logText.isNotBlank()) {
-            item { LogCard(state, viewModel, logSaver) }
+            item(key = "log_card") { LogCard(state, viewModel, logSaver) }
         }
     }
 }
