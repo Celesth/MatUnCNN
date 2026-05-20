@@ -1,6 +1,7 @@
 package com.matuncnn.app.processor
 
 import android.util.Log
+import com.matuncnn.app.util.DebugLog
 import com.matuncnn.app.util.ExecHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -72,6 +73,7 @@ class ImageProcessor {
             }
 
             currentProcess = ExecHelper.exec(binaryFile, args, workingDir, env)
+            DebugLog.log("Upscale", "Started: ${binaryFile.name} (pid: ${currentProcess!!.pid()})")
 
             val reader = BufferedReader(InputStreamReader(currentProcess!!.inputStream))
             var line: String?
@@ -92,12 +94,15 @@ class ImageProcessor {
 
             val exitCode = currentProcess!!.waitFor()
             success = exitCode == 0
+            DebugLog.log("Upscale", "Finished: exit=$exitCode success=$success")
             Log.d("ImageProcessor", "Process finished with exit code: $exitCode")
         } catch (e: InterruptedException) {
             Log.w("ImageProcessor", "Process interrupted")
+            DebugLog.log("Upscale", "Interrupted")
             callback.onError("Process interrupted")
         } catch (e: Exception) {
             Log.e("ImageProcessor", "Error executing process", e)
+            DebugLog.log("Upscale", "Error: ${e.message}")
             callback.onError(e.message ?: "Unknown error")
         } finally {
             currentProcess?.destroy()

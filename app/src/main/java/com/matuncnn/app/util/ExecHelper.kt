@@ -22,6 +22,7 @@ object ExecHelper {
         if (method == null) {
             method = probeMethod(binary, workDir)
         }
+        DebugLog.log("Exec", "${method} ${binary.name} ${args.joinToString(" ")}")
         return when (method) {
             ExecMethod.DIRECT -> execDirect(binary, args, workDir, extraEnv)
             ExecMethod.PROC_SELF_FD -> execProcSelfFd(binary, args, workDir, extraEnv)
@@ -32,8 +33,10 @@ object ExecHelper {
 
     private fun probeMethod(binary: File, workDir: String): ExecMethod {
         if (tryMethod { execDirect(binary, emptyList(), workDir).apply { destroy(); waitFor() } }) {
+            DebugLog.log("Exec", "Probe: DIRECT works for ${binary.name}")
             return ExecMethod.DIRECT
         }
+        DebugLog.log("Exec", "Probe: DIRECT failed for ${binary.name}, trying /proc/self/fd/...")
         Log.i(TAG, "Direct exec failed, trying /proc/self/fd/...")
         val raf = try { RandomAccessFile(binary, "r") } catch (_: Exception) { null }
         if (raf != null) {
@@ -44,17 +47,21 @@ object ExecHelper {
                 val fdPath = "/proc/self/fd/$fd"
                 if (tryMethod { execDirect(File(fdPath), emptyList(), workDir).apply { destroy(); waitFor() } }) {
                     raf.close()
+                    DebugLog.log("Exec", "Probe: PROC_SELF_FD works for ${binary.name}")
                     return ExecMethod.PROC_SELF_FD
                 }
             } catch (_: Exception) { }
             raf.close()
         }
 
+        DebugLog.log("Exec", "Probe: /proc/self/fd failed, trying linker64 for ${binary.name}")
         Log.i(TAG, "/proc/self/fd failed, trying linker64...")
         if (tryMethod { execLinker64(binary, emptyList(), workDir).apply { destroy(); waitFor() } }) {
+            DebugLog.log("Exec", "Probe: LINKER64 works for ${binary.name}")
             return ExecMethod.LINKER64
         }
 
+        DebugLog.log("Exec", "Probe: ALL methods failed for ${binary.name}")
         throw RuntimeException("Cannot execute binary: ${binary.absolutePath} (noexec mount)")
     }
 

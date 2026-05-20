@@ -14,6 +14,7 @@ import com.matuncnn.app.processor.CommandListManager
 import com.matuncnn.app.processor.ImageProcessor
 import com.matuncnn.app.util.AssetsCopyer
 import com.matuncnn.app.util.AssetsDownloader
+import com.matuncnn.app.util.DebugLog
 import com.matuncnn.app.util.DownloadProgress
 import com.matuncnn.app.util.ProgressLogHelper
 import com.matuncnn.app.util.UpscaleCache
@@ -84,21 +85,30 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         val ok = withContext(Dispatchers.IO) {
             app.ensureWorkDir()
+            DebugLog.log("Init", "Work dir: ${app.workDir}")
 
             if (AssetsDownloader.needsDownload(app.workDir)) {
+                DebugLog.log("Init", "Assets download needed, starting...")
                 val result = AssetsDownloader.downloadAndExtract(app.workDir) { progress ->
                     _uiState.update { it.copy(downloadProgress = progress) }
                 }
                 _uiState.update { it.copy(downloadProgress = null) }
-                if (result.isFailure) return@withContext false
+                if (result.isFailure) {
+                    DebugLog.log("Init", "Asset download failed")
+                    return@withContext false
+                }
+                DebugLog.log("Init", "Asset download complete")
             }
 
+            DebugLog.log("Init", "Copying bundled assets...")
             AssetsCopyer.releaseAssets(context, "realsr", app.workDir, false)
+            DebugLog.log("Init", "Assets ready")
             true
         }
         if (!ok) return
 
         val hasVulkan = VulkanHelper.hasVulkan(context.packageManager)
+        DebugLog.log("Init", "Vulkan check: ${if (hasVulkan) "available" else "NOT available"}")
         if (!hasVulkan) {
             _uiState.update { it.copy(hasVulkan = false) }
         }
@@ -255,6 +265,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             )
             val cached = UpscaleCache.get(cacheKey)
             if (cached != null && File(cached).exists()) {
+                DebugLog.log("Cache", "HIT: $cacheKey -> $cached")
                 _uiState.update {
                     it.copy(
                         outputFilePath = cached,
@@ -264,6 +275,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 return@launch
             }
+            DebugLog.log("Cache", "MISS: $cacheKey")
 
             progressLogHelper.reset()
             _uiState.update {
@@ -293,6 +305,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     override fun onCompleted(result: String, success: Boolean) {
                         if (success) {
                             UpscaleCache.put(cacheKey, outputPath)
+                            DebugLog.log("Cache", "Stored: $cacheKey -> $outputPath")
                         }
                         val summary = progressLogHelper.getCompletionSummary(
                             success,
@@ -358,6 +371,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     out.write(_uiState.value.logText.toByteArray())
                 }
             } catch (e: Exception) {
+                DebugLog.log("Error", "saveLogTo: ${e.message}")
                 _uiState.update { it.copy(statusMessage = "Failed to save log") }
             }
         }
@@ -375,6 +389,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 input.close()
                 _uiState.update { it.copy(statusMessage = "Saved!") }
             } catch (e: Exception) {
+                DebugLog.log("Error", "saveOutputTo: ${e.message}")
                 _uiState.update { it.copy(statusMessage = "Failed to save") }
             }
         }
