@@ -61,7 +61,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.matuncnn.app.BuildConfig
 import com.matuncnn.app.data.AppSettings
-import com.matuncnn.app.ui.theme.statusSuccess
+import com.matuncnn.app.ui.theme.AppColors
 import com.matuncnn.app.util.DebugLog
 import com.matuncnn.app.viewmodel.MainViewModel
 
@@ -71,7 +71,7 @@ fun SettingsScreen(viewModel: MainViewModel) {
     val state by viewModel.uiState.collectAsState()
     val settings = state.settings
     var tabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("General", "Theme", "Debug")
+    val tabs = listOf("General", "Debug")
 
     Column(modifier = Modifier.fillMaxSize()) {
         ScrollableTabRow(
@@ -89,8 +89,7 @@ fun SettingsScreen(viewModel: MainViewModel) {
 
         when (tabIndex) {
             0 -> GeneralTab(settings, viewModel)
-            1 -> ThemeTab(settings, viewModel)
-            2 -> DebugTab()
+            1 -> DebugTab()
         }
     }
 }
@@ -271,51 +270,14 @@ private fun GeneralTab(settings: AppSettings, viewModel: MainViewModel) {
                         Text("MatUnCNN", style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text("by Celesth", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("by Celesth", style = MaterialTheme.typography.bodyMedium, color = AppColors.Slate)
                     Spacer(Modifier.height(2.dp))
-                    Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = AppColors.Slate)
                 }
             }
         }
 
         item(key = "spacer") { Spacer(Modifier.height(16.dp)) }
-    }
-}
-
-// ─── Theme Tab ──────────────────────────────────────────────────
-
-@Composable
-private fun ThemeTab(settings: AppSettings, viewModel: MainViewModel) {
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("Theme", style = MaterialTheme.typography.titleMedium)
-                Spacer(Modifier.height(8.dp))
-                SettingDropdown(
-                    listOf("System", "Light", "Dark", "AMOLED", "Hyprland"),
-                    settings.themeIndex.coerceIn(0, 4)
-                ) { viewModel.updateSettings(settings.copy(themeIndex = it)) }
-            }
-        }
-
-        val previews = listOf("System" to MaterialTheme.colorScheme.surface,
-            "Light" to MaterialTheme.colorScheme.surface,
-            "Dark" to MaterialTheme.colorScheme.surface,
-            "AMOLED" to MaterialTheme.colorScheme.surface,
-            "Hyprland" to MaterialTheme.colorScheme.surface)
-        previews.forEachIndexed { i, (name, _) ->
-            Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(name, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                    if (i == settings.themeIndex) {
-                        Text("ACTIVE", color = statusSuccess, style = MaterialTheme.typography.labelSmall)
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -353,7 +315,7 @@ private fun DebugTab() {
         Box(
             modifier = Modifier.fillMaxWidth().weight(1f)
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(AppColors.Dark)
                 .padding(8.dp)
         ) {
             Column(
@@ -363,11 +325,11 @@ private fun DebugTab() {
             ) {
                 if (logs.isEmpty()) {
                     Text("No log entries yet.", style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = AppColors.Slate)
                 } else {
                     logs.forEach { entry ->
                         Text(entry, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = AppColors.Slate,
                             modifier = Modifier.padding(vertical = 1.dp))
                     }
                 }

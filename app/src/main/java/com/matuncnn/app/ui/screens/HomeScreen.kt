@@ -67,9 +67,7 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.matuncnn.app.model.CommandItem
-import com.matuncnn.app.ui.theme.statusError
-import com.matuncnn.app.ui.theme.statusProcessing
-import com.matuncnn.app.ui.theme.statusSuccess
+import com.matuncnn.app.ui.theme.AppColors
 import com.matuncnn.app.viewmodel.MainUiState
 import com.matuncnn.app.viewmodel.MainViewModel
 import java.io.File
@@ -141,15 +139,15 @@ fun ImageSelectionCard(
                 Box(
                     modifier = Modifier.fillMaxWidth().height(100.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .border(1.dp, AppColors.Slate, RoundedCornerShape(8.dp))
+                        .background(AppColors.Dark)
                         .clickable { onSelectImage() },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Filled.Image, null, Modifier.size(28.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Icon(Icons.Filled.Image, null, Modifier.size(28.dp), tint = AppColors.Slate)
                         Spacer(Modifier.height(4.dp))
-                        Text("Tap to select image", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+                        Text("Tap to select image", color = AppColors.Slate, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             } else {
@@ -165,7 +163,7 @@ fun ImageSelectionCard(
                     }
                     Column(Modifier.weight(1f)) {
                         Text(state.inputFileName, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        Text("Ready", style = MaterialTheme.typography.bodySmall, color = statusSuccess)
+                        Text("Ready", style = MaterialTheme.typography.bodySmall, color = AppColors.statusSuccess)
                     }
                     OutlinedButton(onClick = onSelectImage) { Text("Change") }
                 }
@@ -214,7 +212,7 @@ fun CommandSelectorCard(state: MainUiState, viewModel: MainViewModel) {
                                 Column {
                                     Text(item.displayLabel, style = MaterialTheme.typography.bodyMedium)
                                     Text(item.command, style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        color = AppColors.Slate, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
                             onClick = { viewModel.selectCommand(index); expanded = false }
@@ -256,7 +254,7 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                     Text(
                         state.progressText,
                         style = MaterialTheme.typography.bodySmall,
-                        color = statusProcessing
+                        color = AppColors.statusProcessing
                     )
                 }
                 Spacer(Modifier.height(6.dp))
@@ -267,7 +265,7 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                 Text(
                     "Vulkan is not available on this device. ncnn may not work.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = statusError
+                    color = AppColors.statusError
                 )
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -284,7 +282,7 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                 if (state.isProcessing) {
                     Button(
                         onClick = { viewModel.cancelProcessing() },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.statusError),
                         modifier = Modifier.height(44.dp)
                     ) {
                         Icon(Icons.Filled.Stop, null, Modifier.size(18.dp))
@@ -299,10 +297,10 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                 Text(
                     state.statusMessage, style = MaterialTheme.typography.bodySmall,
                     color = when {
-                        state.statusMessage.contains("Error") || state.statusMessage.contains("Failed") -> statusError
-                        state.statusMessage.contains("Complete") || state.statusMessage.contains("Done") -> statusSuccess
-                        state.isProcessing -> statusProcessing
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        state.statusMessage.contains("Error") || state.statusMessage.contains("Failed") -> AppColors.statusError
+                        state.statusMessage.contains("Complete") || state.statusMessage.contains("Done") -> AppColors.statusSuccess
+                        state.isProcessing -> AppColors.statusProcessing
+                        else -> AppColors.Slate
                     }
                 )
             }
@@ -373,12 +371,12 @@ fun LogCard(
             Box(
                 modifier = Modifier.fillMaxWidth().height(180.dp)
                     .clip(RoundedCornerShape(6.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(AppColors.Dark)
                     .padding(8.dp)
             ) {
                 Text(
                     state.logText, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = AppColors.Slate
                 )
             }
         }

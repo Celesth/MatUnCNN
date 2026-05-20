@@ -47,7 +47,6 @@ class SettingsRepository(private val context: Context) {
             hiddenPrograms = (prefs[HIDDEN_PROGRAMS] ?: "").split(",")
                 .filter { it.isNotBlank() }.toSet(),
             customLabelsJson = prefs[CUSTOM_LABELS_JSON] ?: "",
-            themeIndex = prefs[THEME_INDEX] ?: 0,
         )
     }
 
@@ -82,7 +81,6 @@ class SettingsRepository(private val context: Context) {
             prefs[MNN_BACKEND] = updated.mnnBackend
             prefs[HIDDEN_PROGRAMS] = updated.hiddenPrograms.joinToString(",")
             prefs[CUSTOM_LABELS_JSON] = updated.customLabelsJson
-            prefs[THEME_INDEX] = updated.themeIndex
         }
     }
 
@@ -118,7 +116,6 @@ class SettingsRepository(private val context: Context) {
             hiddenPrograms = (prefs[HIDDEN_PROGRAMS] ?: "").split(",")
                 .filter { it.isNotBlank() }.toSet(),
             customLabelsJson = prefs[CUSTOM_LABELS_JSON] ?: "",
-            themeIndex = prefs[THEME_INDEX] ?: 0,
         )
     }
 
@@ -150,7 +147,6 @@ class SettingsRepository(private val context: Context) {
         private val MNN_BACKEND = intPreferencesKey("mnnBackend")
         private val HIDDEN_PROGRAMS = stringPreferencesKey("hiddenPrograms")
         private val CUSTOM_LABELS_JSON = stringPreferencesKey("customLabelsJson")
-        private val THEME_INDEX = intPreferencesKey("themeIndex")
     }
 }
 
@@ -181,6 +177,5 @@ data class AppSettings(
     val notify: Int = 2,
     val mnnBackend: Int = 3,
     val hiddenPrograms: Set<String> = emptySet(),
-    val customLabelsJson: String = "",
-    val themeIndex: Int = 0
+    val customLabelsJson: String = ""
 )

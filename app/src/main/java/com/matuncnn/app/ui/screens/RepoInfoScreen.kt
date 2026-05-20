@@ -22,8 +22,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import com.matuncnn.app.ui.theme.AppColors
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,13 +54,13 @@ fun RepoInfoScreen() {
                         Icons.Filled.Person,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = AppColors.Mid
                     )
                     Spacer(Modifier.height(12.dp))
                     Text("Celesth", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
                     Text("Creator & Developer", style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = AppColors.Slate)
                 }
             }
         }
@@ -78,7 +78,7 @@ fun RepoInfoScreen() {
                     }
                     Spacer(Modifier.height(8.dp))
                     Text("github.com/Celesth/MatUnCNN", style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = AppColors.Slate)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
@@ -106,7 +106,7 @@ fun RepoInfoScreen() {
                     }
                     Spacer(Modifier.height(8.dp))
                     Text("Join the community on GitHub Discussions", style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = AppColors.Slate)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
@@ -136,7 +136,7 @@ fun RepoInfoScreen() {
                     Text("Upscale images using AI models with ncnn.\n\n" +
                             "Built with ncnn, ImageMagick.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        color = AppColors.Slate)
                 }
             }
         }

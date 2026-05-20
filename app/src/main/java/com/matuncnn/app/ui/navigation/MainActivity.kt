@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -72,10 +71,7 @@ class MainActivity : ComponentActivity() {
         handleIntent(intent)
 
         setContent {
-            val settings by mainViewModel.settingsFlow.collectAsState(initial = null)
-            val themeIndex = settings?.themeIndex ?: 0
-
-            MatUnCnnTheme(themeIndex = themeIndex) {
+            MatUnCnnTheme {
                 MatUnCnnNavHost(
                     mainViewModel = mainViewModel,
                     onLaunchImagePicker = { launchImagePicker() }
