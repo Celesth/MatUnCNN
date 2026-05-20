@@ -73,7 +73,7 @@ class ImageProcessor {
             }
 
             currentProcess = ExecHelper.exec(binaryFile, args, workingDir, env)
-            DebugLog.log("Upscale", "Started: ${binaryFile.name} (pid: ${currentProcess!!.pid()})")
+            DebugLog.log("Upscale", "Started: ${binaryFile.name}")
 
             val reader = BufferedReader(InputStreamReader(currentProcess!!.inputStream))
             var line: String?
