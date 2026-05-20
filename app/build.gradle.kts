@@ -20,15 +20,18 @@ android {
 
     val keystoreFile = rootProject.file("keystore.properties")
     val props = if (keystoreFile.exists()) {
-        java.util.Properties().also { it.load(keystoreFile.inputStream()) }
+        keystoreFile.readLines().mapNotNull { line ->
+            val idx = line.indexOf('=')
+            if (idx > 0) line.substring(0, idx) to line.substring(idx + 1) else null
+        }.toMap()
     } else null
 
     signingConfigs {
         create("release") {
-            storeFile = props?.getProperty("storeFile")?.let { file(it) }
-            storePassword = props?.getProperty("storePassword")
-            keyAlias = props?.getProperty("keyAlias")
-            keyPassword = props?.getProperty("keyPassword")
+            storeFile = props?.get("storeFile")?.let { rootProject.file(it) }
+            storePassword = props?.get("storePassword")
+            keyAlias = props?.get("keyAlias")
+            keyPassword = props?.get("keyPassword")
         }
     }
 

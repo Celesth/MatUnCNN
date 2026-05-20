@@ -34,3 +34,7 @@ realsr-assets-*.zip
 
 # Runtime logs
 rlogs/
+
+# Keystore
+release.keystore
+keystore.properties
