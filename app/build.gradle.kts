@@ -18,17 +18,31 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-            isDebuggable = true
+    val keystoreFile = rootProject.file("keystore.properties")
+    val props = if (keystoreFile.exists()) {
+        java.util.Properties().also { it.load(keystoreFile.inputStream()) }
+    } else null
+
+    signingConfigs {
+        create("release") {
+            storeFile = props?.getProperty("storeFile")?.let { file(it) }
+            storePassword = props?.getProperty("storePassword")
+            keyAlias = props?.getProperty("keyAlias")
+            keyPassword = props?.getProperty("keyPassword")
         }
+    }
+
+    buildTypes {
         release {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            isDebuggable = true
         }
     }
 
