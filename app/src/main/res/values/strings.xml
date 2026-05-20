@@ -6,7 +6,7 @@
         \nThis application bundles nCNN-based super-resolution tools
         and FFmpeg for video processing.\n
         \nIt does not collect any private information.\n
-        \nOriginal Rep: https://github.com/tumuyan/RealSR-NCNN-Android
+        \nGithub: https://github.com/tumuyan/RealSR-NCNN-Android
     </string>
     <string name="input_command">Input console command, for example: ./realsr-ncnn -i input.png -o output.png</string>
     <string name="open">Open</string>
