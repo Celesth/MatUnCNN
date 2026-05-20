@@ -7,7 +7,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -38,7 +36,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.matuncnn.app.ui.screens.DownloadScreen
-import com.matuncnn.app.ui.screens.GithubScreen
 import com.matuncnn.app.ui.screens.HomeScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
 import com.matuncnn.app.ui.theme.MatUnCnnTheme
@@ -212,9 +209,6 @@ fun MatUnCnnNavHost(
                     viewModel = mainViewModel,
                     onLaunchImagePicker = onLaunchImagePicker
                 )
-            }
-            composable(Screen.Repo.route) {
-                GithubScreen()
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = mainViewModel)
