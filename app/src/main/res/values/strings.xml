@@ -79,8 +79,8 @@
 
     <!-- Style arrays for command labels -->
     <string-array name="style_array">
-        <item>Real-ESRGAN-anime-x4</item>
-        <item>Real-ESRGAN-base</item>
+        <item>Real-ESRGAN-anime</item>
+        <item>Real-ESRGAN</item>
         <item>Real-ESRGANv3-general-x4</item>
         <item>Real-ESRGANv3-anime-x2</item>
         <item>Real-ESRGANv3-anime-x3</item>
