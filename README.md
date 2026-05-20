@@ -1,6 +1,10 @@
 # MatUnCNN
+Android native image upscaler powered by NCNN.
 
-Android native image and video upscaler powered by NCNN.
+# Note
+The Original Creator For This Project Is [Tumuyan](https://github.com/tumuyan)
+[original repo:](https://github.com/tumuyan/RealSR-NCNN-Android.git)
+
 
 ## Requirements
 
