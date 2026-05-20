@@ -59,6 +59,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.matuncnn.app.BuildConfig
 import com.matuncnn.app.data.AppSettings
 import com.matuncnn.app.ui.components.DoubleOutlineCard
 import com.matuncnn.app.ui.theme.statusError
@@ -271,6 +272,8 @@ private fun GeneralTab(settings: AppSettings, viewModel: MainViewModel) {
                     }
                     Spacer(Modifier.height(4.dp))
                     Text("by Celesth", color = Color(0xAAFFFFFF), style = MaterialTheme.typography.bodyMedium)
+                    Spacer(Modifier.height(2.dp))
+                    Text("v${BuildConfig.VERSION_NAME}", color = Color(0x88FFFFFF), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
