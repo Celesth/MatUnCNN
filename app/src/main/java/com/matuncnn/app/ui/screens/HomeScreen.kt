@@ -244,7 +244,21 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             if (state.isProcessing) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth().height(4.dp))
+                LinearProgressIndicator(
+                    progress = {
+                        val pct = state.progressText.filter { it.isDigit() || it == '.' }.toFloatOrNull()
+                        if (pct != null) pct / 100f else 0f
+                    },
+                    modifier = Modifier.fillMaxWidth().height(4.dp)
+                )
+                if (state.progressText.isNotBlank()) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        state.progressText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = statusProcessing
+                    )
+                }
                 Spacer(Modifier.height(6.dp))
             }
 

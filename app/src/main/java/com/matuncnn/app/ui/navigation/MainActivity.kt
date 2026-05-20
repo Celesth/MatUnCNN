@@ -35,8 +35,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.matuncnn.app.BuildConfig
 import com.matuncnn.app.ui.screens.DownloadScreen
 import com.matuncnn.app.ui.screens.HomeScreen
+import com.matuncnn.app.ui.screens.RepoInfoScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
 import com.matuncnn.app.ui.theme.MatUnCnnTheme
 import com.matuncnn.app.viewmodel.MainViewModel
@@ -190,7 +192,7 @@ fun MatUnCnnNavHost(
                 onDismissRequest = { showBeta = false },
                 title = { Text("MatUnCNN Beta") },
                 text = {
-                    Text("This app is in early beta. Some features may be unstable.\n\nVersion: 1.0.0-beta\n\nReport issues on GitHub.")
+                    Text("MatUnCNN v${BuildConfig.VERSION_NAME}\n\nUpscale images using AI models with ncnn.")
                 },
                 confirmButton = {
                     TextButton(onClick = { showBeta = false }) { Text("Got it") }
@@ -209,6 +211,9 @@ fun MatUnCnnNavHost(
                     viewModel = mainViewModel,
                     onLaunchImagePicker = onLaunchImagePicker
                 )
+            }
+            composable(Screen.Repo.route) {
+                RepoInfoScreen()
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = mainViewModel)
