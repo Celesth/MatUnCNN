@@ -55,13 +55,13 @@ fun RepoInfoScreen() {
                         Icons.Filled.Person,
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
-                        tint = AppColors.Mid
+                        tint = AppColors.accent
                     )
                     Spacer(Modifier.height(12.dp))
                     Text("Celesth", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(4.dp))
                     Text("Creator & Developer", style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.Slate)
+                        color = AppColors.textSecondary)
                 }
             }
         }
@@ -79,7 +79,7 @@ fun RepoInfoScreen() {
                     }
                     Spacer(Modifier.height(8.dp))
                     Text("github.com/Celesth/MatUnCNN", style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.Slate)
+                        color = AppColors.textSecondary)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
@@ -107,7 +107,7 @@ fun RepoInfoScreen() {
                     }
                     Spacer(Modifier.height(8.dp))
                     Text("Join the community on GitHub Discussions", style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.Slate)
+                        color = AppColors.textSecondary)
                     Spacer(Modifier.height(12.dp))
                     Button(
                         onClick = {
@@ -137,7 +137,7 @@ fun RepoInfoScreen() {
                     Text("Upscale images using AI models with ncnn.\n\n" +
                             "Built with ncnn, ImageMagick.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.Slate)
+                        color = AppColors.textSecondary)
                 }
             }
         }

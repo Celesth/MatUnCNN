@@ -270,9 +270,9 @@ private fun GeneralTab(settings: AppSettings, viewModel: MainViewModel) {
                         Text("MatUnCNN", style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text("by Celesth", style = MaterialTheme.typography.bodyMedium, color = AppColors.Slate)
+                    Text("by Celesth", style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
                     Spacer(Modifier.height(2.dp))
-                    Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = AppColors.Slate)
+                    Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
                 }
             }
         }
@@ -315,7 +315,7 @@ private fun DebugTab() {
         Box(
             modifier = Modifier.fillMaxWidth().weight(1f)
                 .clip(RoundedCornerShape(8.dp))
-                .background(AppColors.Dark)
+                .background(AppColors.card)
                 .padding(8.dp)
         ) {
             Column(
@@ -325,11 +325,11 @@ private fun DebugTab() {
             ) {
                 if (logs.isEmpty()) {
                     Text("No log entries yet.", style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.Slate)
+                        color = AppColors.textSecondary)
                 } else {
                     logs.forEach { entry ->
                         Text(entry, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                            color = AppColors.Slate,
+                            color = AppColors.textSecondary,
                             modifier = Modifier.padding(vertical = 1.dp))
                     }
                 }

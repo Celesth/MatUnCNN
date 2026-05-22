@@ -139,15 +139,15 @@ fun ImageSelectionCard(
                 Box(
                     modifier = Modifier.fillMaxWidth().height(100.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .border(1.dp, AppColors.Slate, RoundedCornerShape(8.dp))
-                        .background(AppColors.Dark)
+                        .border(1.dp, AppColors.border, RoundedCornerShape(8.dp))
+                        .background(AppColors.card)
                         .clickable { onSelectImage() },
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Filled.Image, null, Modifier.size(28.dp), tint = AppColors.Slate)
+                        Icon(Icons.Filled.Image, null, Modifier.size(28.dp), tint = AppColors.textSecondary)
                         Spacer(Modifier.height(4.dp))
-                        Text("Tap to select image", color = AppColors.Slate, style = MaterialTheme.typography.bodySmall)
+                        Text("Tap to select image", color = AppColors.textSecondary, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             } else {
@@ -212,7 +212,7 @@ fun CommandSelectorCard(state: MainUiState, viewModel: MainViewModel) {
                                 Column {
                                     Text(item.displayLabel, style = MaterialTheme.typography.bodyMedium)
                                     Text(item.command, style = MaterialTheme.typography.bodySmall,
-                                        color = AppColors.Slate, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                        color = AppColors.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                 }
                             },
                             onClick = { viewModel.selectCommand(index); expanded = false }
@@ -300,7 +300,7 @@ fun ProcessingControlsCard(state: MainUiState, viewModel: MainViewModel) {
                         state.statusMessage.contains("Error") || state.statusMessage.contains("Failed") -> AppColors.statusError
                         state.statusMessage.contains("Complete") || state.statusMessage.contains("Done") -> AppColors.statusSuccess
                         state.isProcessing -> AppColors.statusProcessing
-                        else -> AppColors.Slate
+                        else -> AppColors.textSecondary
                     }
                 )
             }
@@ -371,12 +371,12 @@ fun LogCard(
             Box(
                 modifier = Modifier.fillMaxWidth().height(180.dp)
                     .clip(RoundedCornerShape(6.dp))
-                    .background(AppColors.Dark)
+                    .background(AppColors.card)
                     .padding(8.dp)
             ) {
                 Text(
                     state.logText, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                    color = AppColors.Slate
+                    color = AppColors.textSecondary
                 )
             }
         }

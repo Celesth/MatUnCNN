@@ -3,14 +3,15 @@ package com.matuncnn.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 object AppColors {
-    val Navy = Color(0xFF0d0d0d)
-    val Dark = Color(0xFF141414)
-    val Mid = Color(0xFF5bc0be)
-    val Slate = Color(0xFF6fffe9)
-    val Cream = Color(0xFFF0EBD8)
+    val bg = Color(0xFF000000)
+    val card = Color(0xFF0A0A0A)
+    val border = Color(0xFF333333)
+    val textPrimary = Color(0xFFFFFFFF)
+    val textSecondary = Color(0xFF888888)
+    val accent = Color(0xFFFFFFFF)
 
-    val statusProcessing = Color(0xFF38E1FF)
-    val statusSuccess = Color(0xFF5EFF97)
-    val statusError = Color(0xFF9F0000)
-    val statusIdle = Color(0xFF898989)
+    val statusProcessing = Color(0xFF4FC3F7)
+    val statusSuccess = Color(0xFF66BB6A)
+    val statusError = Color(0xFFEF5350)
+    val statusIdle = Color(0xFF757575)
 }
