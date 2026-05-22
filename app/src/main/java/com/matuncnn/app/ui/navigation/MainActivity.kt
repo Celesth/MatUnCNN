@@ -37,7 +37,6 @@ import androidx.navigation.compose.rememberNavController
 import com.matuncnn.app.BuildConfig
 import com.matuncnn.app.ui.screens.DownloadScreen
 import com.matuncnn.app.ui.screens.HomeScreen
-import com.matuncnn.app.ui.screens.RepoInfoScreen
 import com.matuncnn.app.ui.screens.SettingsScreen
 import com.matuncnn.app.ui.theme.MatUnCnnTheme
 import com.matuncnn.app.viewmodel.MainViewModel
@@ -207,9 +206,6 @@ fun MatUnCnnNavHost(
                     viewModel = mainViewModel,
                     onLaunchImagePicker = onLaunchImagePicker
                 )
-            }
-            composable(Screen.Repo.route) {
-                RepoInfoScreen()
             }
             composable(Screen.Settings.route) {
                 SettingsScreen(viewModel = mainViewModel)

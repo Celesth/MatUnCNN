@@ -3,6 +3,7 @@ package com.matuncnn.app.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -25,9 +26,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -263,16 +266,44 @@ private fun GeneralTab(settings: AppSettings, viewModel: MainViewModel) {
         }
 
         item(key = "footer") {
+            val ctx = LocalContext.current
             Card(modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(2.dp)) {
                 Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Info, null, modifier = Modifier.padding(end = 6.dp))
+                        Icon(Icons.Filled.Person, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
                         Text("MatUnCNN", style = MaterialTheme.typography.titleMedium)
                     }
                     Spacer(Modifier.height(4.dp))
-                    Text("by Celesth", style = MaterialTheme.typography.bodyMedium, color = AppColors.textSecondary)
-                    Spacer(Modifier.height(2.dp))
-                    Text("v${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+                    Text("by Celesth  ·  v${BuildConfig.VERSION_NAME}",
+                        style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW,
+                                    Uri.parse("https://github.com/Celesth"))
+                                ctx.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Filled.Person, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Profile")
+                        }
+                        Button(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_VIEW,
+                                    Uri.parse("https://github.com/Celesth/MatUnCNN"))
+                                ctx.startActivity(intent)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Filled.Code, null, Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Repo")
+                        }
+                    }
                 }
             }
         }
