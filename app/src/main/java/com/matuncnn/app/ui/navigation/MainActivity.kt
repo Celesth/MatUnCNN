@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
     private var pendingImageUri: Uri? = null
 
     private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+        ActivityResultContracts.OpenDocument()
     ) { uri ->
         uri?.let { mainViewModel.setInputImage(it) }
         pendingImageUri?.let { mainViewModel.setInputImage(it) }
@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchImagePicker() {
-        imagePickerLauncher.launch("image/*")
+        imagePickerLauncher.launch(arrayOf("image/*"))
     }
 }
 
