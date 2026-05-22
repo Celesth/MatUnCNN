@@ -325,7 +325,7 @@ fun OutputPreviewCard(
             if (state.outputFilePath != null) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data("file://${state.outputFilePath}").crossfade(true).build(),
+                        .data(File(state.outputFilePath)).crossfade(true).build(),
                     contentDescription = "Output",
                     modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Fit

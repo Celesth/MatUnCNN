@@ -307,6 +307,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             UpscaleCache.put(cacheKey, outputPath)
                             DebugLog.log("Cache", "Stored: $cacheKey -> $outputPath")
                         }
+                        val outFile = File(outputPath)
+                        val fileOk = outFile.exists() && outFile.length() > 0
+                        if (!fileOk && success) {
+                            DebugLog.log("Output", "File missing or empty: $outputPath")
+                        } else if (fileOk) {
+                            DebugLog.log("Output", "File OK: ${outFile.length()} bytes")
+                        }
                         val summary = progressLogHelper.getCompletionSummary(
                             success,
                             isNcnnCommand = true
@@ -315,8 +322,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                             it.copy(
                                 isProcessing = false,
                                 logText = progressLogHelper.displayText + summary,
-                                statusMessage = if (success) "Complete!" else "Failed!",
-                                outputImageExists = success && File(outputPath).exists()
+                                statusMessage = if (!success) "Failed!"
+                                    else if (!fileOk) "Failed: output file is empty"
+                                    else "Complete!",
+                                outputImageExists = fileOk
                             )
                         }
                     }
