@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 object AppColors {
     val bg = Color(0xFF000000)
-    val card = Color(0xFF0A0A0A)
+    val card = Color(0xFF000000)
     val border = Color(0xFF333333)
     val textPrimary = Color(0xFFFFFFFF)
     val textSecondary = Color(0xFF888888)

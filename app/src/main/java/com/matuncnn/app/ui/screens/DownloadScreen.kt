@@ -94,31 +94,41 @@ fun DownloadScreen(
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
-                    val animatedProgress by animateFloatAsState(
-                        targetValue = if (progress.totalBytes > 0)
-                            progress.bytesDownloaded.toFloat() / progress.totalBytes else 0f,
-                        label = "progress"
-                    )
-                    LinearProgressIndicator(
-                        progress = { animatedProgress },
-                        modifier = Modifier.fillMaxWidth().height(8.dp)
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            formatBytes(progress.bytesDownloaded),
-                            style = MaterialTheme.typography.bodySmall
+                    val isExtracting = progress.message.startsWith("Extracting")
+                    val hasTotal = progress.totalBytes > 0
+
+                    if (hasTotal) {
+                        val animatedProgress by animateFloatAsState(
+                            targetValue = progress.bytesDownloaded.toFloat() / progress.totalBytes,
+                            label = "progress"
                         )
-                        Text(
-                            if (progress.totalBytes > 0) formatBytes(progress.totalBytes) else "?",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.textSecondary
+                        LinearProgressIndicator(
+                            progress = { animatedProgress },
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth().height(8.dp)
                         )
                     }
-                    if (progress.totalBytes > 0) {
+
+                    Spacer(Modifier.height(12.dp))
+
+                    if (hasTotal) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                formatBytes(progress.bytesDownloaded),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Text(
+                                formatBytes(progress.totalBytes),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = AppColors.textSecondary
+                            )
+                        }
                         val pct = (progress.bytesDownloaded * 100 / progress.totalBytes).toInt()
                         Spacer(Modifier.height(4.dp))
                         Text(
@@ -127,6 +137,17 @@ fun DownloadScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center
+                        )
+                    }
+
+                    if (isExtracting) {
+                        Text(
+                            progress.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center,
+                            color = AppColors.textPrimary
                         )
                     }
                 }

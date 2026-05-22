@@ -63,7 +63,7 @@ object AssetsDownloader {
                     onProgress(DownloadProgress(
                         bytesDownloaded = totalRead,
                         totalBytes = totalBytes,
-                        message = "Downloading models ($pct%)..."
+                        message = "Downloading ($pct%)..."
                     ))
                 }
             }
@@ -71,45 +71,44 @@ object AssetsDownloader {
             input.close()
             conn.disconnect()
 
-            onProgress(DownloadProgress(
-                bytesDownloaded = totalRead,
-                totalBytes = totalBytes,
-                message = "Extracting models..."
-            ))
+            // Count entries before extracting
+            var entryCount = 0
+            ZipInputStream(zipFile.inputStream()).use { zis ->
+                while (zis.nextEntry != null) {
+                    if (!zis.name.endsWith('/')) entryCount++
+                    zis.closeEntry()
+                }
+            }
 
-            extractZip(zipFile, workDir)
+            var extracted = 0
+            ZipInputStream(zipFile.inputStream()).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    extracted++
+                    onProgress(DownloadProgress(
+                        message = "Extracting ($extracted/$entryCount)..."
+                    ))
+                    val target = File(File(workDir), entry.name)
+                    if (entry.isDirectory) {
+                        target.mkdirs()
+                    } else {
+                        target.parentFile?.mkdirs()
+                        target.outputStream().use { fos -> zis.copyTo(fos) }
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+
             zipFile.delete()
             setExecutableRecursive(File(workDir))
 
-            onProgress(DownloadProgress(
-                isFinished = true,
-                message = "Done!"
-            ))
+            onProgress(DownloadProgress(isFinished = true, message = "Done!"))
 
             Result.success(Unit)
         } catch (e: Exception) {
             onProgress(DownloadProgress(error = e.message ?: "Download failed"))
             Result.failure(e)
-        }
-    }
-
-    private fun extractZip(zipFile: File, destDir: String) {
-        val dest = File(destDir)
-        ZipInputStream(zipFile.inputStream()).use { zis ->
-            var entry = zis.nextEntry
-            while (entry != null) {
-                val target = File(dest, entry.name)
-                if (entry.isDirectory) {
-                    target.mkdirs()
-                } else {
-                    target.parentFile?.mkdirs()
-                    target.outputStream().use { fos ->
-                        zis.copyTo(fos)
-                    }
-                }
-                zis.closeEntry()
-                entry = zis.nextEntry
-            }
         }
     }
 
