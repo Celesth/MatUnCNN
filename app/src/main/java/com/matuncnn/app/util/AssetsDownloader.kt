@@ -74,9 +74,11 @@ object AssetsDownloader {
             // Count entries before extracting
             var entryCount = 0
             ZipInputStream(zipFile.inputStream()).use { zis ->
-                while (zis.nextEntry != null) {
-                    if (!zis.name.endsWith('/')) entryCount++
+                var e = zis.nextEntry
+                while (e != null) {
+                    if (!e.isDirectory) entryCount++
                     zis.closeEntry()
+                    e = zis.nextEntry
                 }
             }
 
