@@ -231,7 +231,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
             // Handle input file
             val inputForCommand: String
-            if (state.inputUri != null && state.inputFilePath == null) {
+            if (state.inputUri != null) {
                 // Copy content URI to temp file
                 val tempInput = File(app.workDir, "input.png")
                 context.contentResolver.openInputStream(state.inputUri)?.use { input ->
@@ -240,6 +240,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 inputForCommand = tempInput.absolutePath
+                DebugLog.log("Input", "Copied content:// to $inputForCommand")
             } else {
                 inputForCommand = inputFile
             }
