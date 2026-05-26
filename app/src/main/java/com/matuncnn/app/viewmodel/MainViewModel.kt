@@ -56,7 +56,8 @@ data class MainUiState(
     val selectedUris: List<Uri> = emptyList(),
     val downloadProgress: DownloadProgress? = null,
     val hasVulkan: Boolean = true,
-    val scaleText: String = ""
+    val scaleText: String = "",
+    val useCpuFallback: Boolean = false
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -112,6 +113,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         DebugLog.log("Init", "Vulkan check: ${if (hasVulkan) "available" else "NOT available"}")
         if (!hasVulkan) {
             _uiState.update { it.copy(hasVulkan = false) }
+        }
+
+        val isAdreno = VulkanHelper.isAdrenoGpu()
+        DebugLog.log("Init", "GPU check: ${if (isAdreno) "Adreno detected, will force CPU" else "non-Adreno"}")
+        if (isAdreno) {
+            _uiState.update { it.copy(useCpuFallback = true) }
         }
 
         val settings = settingsRepo.settingsFlow.first()
@@ -260,9 +267,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val scaleText = if (scaleMatch != null) "x${scaleMatch.groupValues[1]}" else ""
             _uiState.update { it.copy(scaleText = scaleText) }
 
-            val finalCmd = cmd
-                .replace("input.png", inputForCommand)
-                .replace("output.png", outputPath)
+            // Inject -g -1 for CPU mode on Adreno
+            val cpuForced = state.useCpuFallback && isNcnnCommand(cmd)
+            val finalCmd = if (cpuForced) {
+                val base = cmd.replace("input.png", inputForCommand)
+                    .replace("output.png", outputPath)
+                "$base -g -1"
+            } else {
+                cmd.replace("input.png", inputForCommand)
+                    .replace("output.png", outputPath)
+            }
+
+            if (cpuForced) {
+                DebugLog.log("Upscale", "Adreno detected — forcing CPU mode (-g -1)")
+            }
 
             // Check cache
             val cacheKey = UpscaleCache.buildKey(
@@ -473,5 +491,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         imageProcessor.shutdown()
+    }
+
+    companion object {
+        private val NCNN_BINARIES = setOf(
+            "realsr-ncnn", "realesrgan-ncnn", "reaalsr-ncnn",
+            "srmd-ncnn", "waifu2x-ncnn", "realcugan-ncnn",
+            "mnnsr-ncnn", "resize-ncnn", "anime4k"
+        )
+
+        private fun isNcnnCommand(cmd: String): Boolean {
+            val name = cmd.trim().substringAfter("./").substringBefore(" ")
+            return name in NCNN_BINARIES
+        }
     }
 }
