@@ -65,7 +65,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.matuncnn.app.BuildConfig
 import com.matuncnn.app.data.AppSettings
-import com.matuncnn.app.ui.theme.AppColors
 import com.matuncnn.app.util.DebugLog
 import com.matuncnn.app.viewmodel.MainViewModel
 
@@ -277,7 +276,7 @@ private fun GeneralTab(settings: AppSettings, viewModel: MainViewModel) {
                     }
                     Spacer(Modifier.height(4.dp))
                     Text("by Celesth  ·  v${BuildConfig.VERSION_NAME}",
-                        style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(Modifier.height(12.dp))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(
@@ -347,7 +346,7 @@ private fun DebugTab() {
         Box(
             modifier = Modifier.fillMaxWidth().weight(1f)
                 .clip(RoundedCornerShape(8.dp))
-                .background(AppColors.card)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(8.dp)
         ) {
             Column(
@@ -357,11 +356,12 @@ private fun DebugTab() {
             ) {
                 if (logs.isEmpty()) {
                     Text("No log entries yet.", style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+
                 } else {
                     logs.forEach { entry ->
                         Text(entry, style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                            color = AppColors.textSecondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(vertical = 1.dp))
                     }
                 }

@@ -58,7 +58,7 @@ fun DownloadScreen(
             Text(
                 progress.error,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(24.dp))
@@ -72,7 +72,7 @@ fun DownloadScreen(
                 Icons.Filled.CloudDownload,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = AppColors.accent
+                tint = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.height(16.dp))
             Text(
@@ -84,7 +84,7 @@ fun DownloadScreen(
             Text(
                 progress.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(24.dp))
@@ -107,7 +107,15 @@ fun DownloadScreen(
                             modifier = Modifier.fillMaxWidth().height(8.dp)
                         )
                     } else {
+                        val infiniteProgress by androidx.compose.animation.core.animateFloatAsState(
+                            targetValue = 1f,
+                            animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+                                animation = androidx.compose.animation.core.tween(1500),
+                                repeatMode = androidx.compose.animation.core.RepeatMode.Reverse
+                            ), label = "infinite"
+                        )
                         LinearProgressIndicator(
+                            progress = { infiniteProgress },
                             modifier = Modifier.fillMaxWidth().height(8.dp)
                         )
                     }
@@ -126,7 +134,7 @@ fun DownloadScreen(
                             Text(
                                 formatBytes(progress.totalBytes),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = AppColors.textSecondary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         val pct = (progress.bytesDownloaded * 100 / progress.totalBytes).toInt()
@@ -147,7 +155,7 @@ fun DownloadScreen(
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.Center,
-                            color = AppColors.textPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -157,7 +165,7 @@ fun DownloadScreen(
             Text(
                 "Downloading model assets from GitHub Releases...\nThis may take a few minutes.",
                 style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

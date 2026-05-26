@@ -1,39 +1,35 @@
 package com.matuncnn.app.ui.theme
 
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 
-private val AppColorScheme = darkColorScheme(
-    primary = AppColors.accent,
-    onPrimary = AppColors.bg,
-    primaryContainer = AppColors.card,
-    onPrimaryContainer = AppColors.textPrimary,
-    secondary = AppColors.textSecondary,
-    onSecondary = AppColors.bg,
-    secondaryContainer = AppColors.card,
-    onSecondaryContainer = AppColors.textSecondary,
-    tertiary = AppColors.accent,
-    onTertiary = AppColors.bg,
-    background = AppColors.bg,
-    onBackground = AppColors.textPrimary,
-    surface = AppColors.card,
-    onSurface = AppColors.textPrimary,
-    surfaceVariant = AppColors.card,
-    onSurfaceVariant = AppColors.textSecondary,
-    outline = AppColors.border,
-    outlineVariant = AppColors.border,
-    error = AppColors.statusError,
-    onError = AppColors.bg,
-    errorContainer = Color(0xFF3A0000),
-    onErrorContainer = Color(0xFFFFCDD2),
-)
+private val LightColorScheme = lightColorScheme()
+private val DarkColorScheme = darkColorScheme()
 
 @Composable
-fun MatUnCnnTheme(content: @Composable () -> Unit) {
+fun MatUnCnnTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
     MaterialTheme(
-        colorScheme = AppColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )

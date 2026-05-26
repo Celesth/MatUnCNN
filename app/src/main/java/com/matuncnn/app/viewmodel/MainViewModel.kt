@@ -55,7 +55,8 @@ data class MainUiState(
     val isMultipleFiles: Boolean = false,
     val selectedUris: List<Uri> = emptyList(),
     val downloadProgress: DownloadProgress? = null,
-    val hasVulkan: Boolean = true
+    val hasVulkan: Boolean = true,
+    val scaleText: String = ""
 )
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -254,6 +255,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val outputFileName = "upscaled_${timestamp}.png"
             val outputPath = "$saveDir/$outputFileName"
 
+            // Parse scale from command
+            val scaleMatch = Regex("-s\\s+(\\d+)").find(cmd)
+            val scaleText = if (scaleMatch != null) "x${scaleMatch.groupValues[1]}" else ""
+            _uiState.update { it.copy(scaleText = scaleText) }
+
             val finalCmd = cmd
                 .replace("input.png", inputForCommand)
                 .replace("output.png", outputPath)
@@ -401,6 +407,34 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: Exception) {
                 DebugLog.log("Error", "saveOutputTo: ${e.message}")
                 _uiState.update { it.copy(statusMessage = "Failed to save") }
+            }
+        }
+    }
+
+    fun saveOutputToGallery() {
+        viewModelScope.launch {
+            val context = getApplication<Application>()
+            val path = _uiState.value.outputFilePath ?: return@launch
+            val file = File(path)
+            if (!file.exists()) return@launch
+
+            try {
+                val values = android.content.ContentValues().apply {
+                    put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, file.name)
+                    put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/png")
+                }
+                val uri = context.contentResolver.insert(
+                    android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+                )
+                if (uri != null) {
+                    context.contentResolver.openOutputStream(uri)?.use { out ->
+                        file.inputStream().use { it.copyTo(out) }
+                    }
+                    _uiState.update { it.copy(statusMessage = "Saved to Gallery!") }
+                }
+            } catch (e: Exception) {
+                DebugLog.log("Error", "saveOutputToGallery: ${e.message}")
+                _uiState.update { it.copy(statusMessage = "Failed to save to gallery") }
             }
         }
     }

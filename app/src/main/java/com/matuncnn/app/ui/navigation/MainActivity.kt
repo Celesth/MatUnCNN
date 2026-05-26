@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
     private var pendingImageUri: Uri? = null
 
     private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocument()
+        ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let { mainViewModel.setInputImage(it) }
         pendingImageUri?.let { mainViewModel.setInputImage(it) }
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun launchImagePicker() {
-        imagePickerLauncher.launch(arrayOf("image/*"))
+        imagePickerLauncher.launch("image/*")
     }
 }
 
@@ -157,16 +157,16 @@ fun MatUnCnnNavHost(
                 val currentDestination = navBackStackEntry?.destination
 
                 Screen.items.forEach { screen ->
+                    val selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true
                     NavigationBarItem(
                         icon = {
                             Icon(
-                                imageVector = if (currentDestination?.hierarchy?.any { it.route == screen.route } == true)
-                                    screen.selectedIcon else screen.unselectedIcon,
+                                imageVector = if (selected) screen.selectedIcon else screen.unselectedIcon,
                                 contentDescription = screen.title
                             )
                         },
-                        label = { Text(screen.title) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                        label = { if (selected) Text(screen.title) else null },
+                        selected = selected,
                         onClick = {
                             navController.navigate(screen.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
