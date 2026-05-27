@@ -17,6 +17,7 @@
 #include <vulkan/vulkan.h>
 #include <dlfcn.h>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <unistd.h>
 #include <sys/syscall.h>

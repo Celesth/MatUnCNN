@@ -3,18 +3,29 @@ project("matuncnn-native")
 
 set(VULKAN_INCLUDE ${ANDROID_NDK}/sources/third_party/vulkan/include)
 
-# ─── Vulkan GPU info probe ──────────────────────────────────
-# Runs before ncnn to detect Adreno via Vulkan API (more
-# accurate than Build.SOC_MODEL). Java ExecHelper runs this
-# first, parses "gpu:0x5143:..." output, then decides -g -1.
-add_executable(matuncnn-vkinfo matuncnn_launcher.cpp)
-target_include_directories(matuncnn-vkinfo PRIVATE ${VULKAN_INCLUDE})
-target_link_libraries(matuncnn-vkinfo PRIVATE vulkan)
+# ─── JNI Vulkan probe library ────────────────────────────────
+# Loaded via System.loadLibrary("matuncnn-native") from Java.
+# Calls Vulkan API directly to detect GPU vendor — no noexec
+# bypass needed since it runs in the app process.
+add_library(matuncnn-native SHARED matuncnn_launcher.cpp)
+target_include_directories(matuncnn-native PRIVATE ${VULKAN_INCLUDE})
+target_link_libraries(matuncnn-native PRIVATE vulkan jnigraphics log)
 
-# ─── LD_PRELOAD hook ─────────────────────────────────────────
+set_target_properties(matuncnn-native PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+)
+
+# ─── LD_PRELOAD hook (optional) ──────────────────────────────
 # Injected into ncnn's process via LD_PRELOAD to intercept
-# Vulkan calls. Logs vkQueueSubmit -4, can spoof API version
-# to work around bug_buffer_image_load_zero.
+# Vulkan calls. Set env["MATUNCNN_SPOOF_VK_API"]=1 to skip
+# ncnn's bug_buffer_image_load_zero workaround (root cause of
+# Adreno black image bug).
 add_library(vulkan-hook SHARED vulkan_hook.cpp)
 target_include_directories(vulkan-hook PRIVATE ${VULKAN_INCLUDE})
 target_link_libraries(vulkan-hook PRIVATE vulkan)
+
+set_target_properties(vulkan-hook PROPERTIES
+    CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON
+)

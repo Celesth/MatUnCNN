@@ -1,33 +1,21 @@
-// matuncnn-vkinfo: Vulkan GPU info probe for MatUnCNN.
-//
-// Queries Vulkan physical devices and prints machine-readable
-// GPU info to stdout. Called by the Java ExecHelper before
-// launching the ncnn binary.
-//
-// Output format (one line per device):
-//   gpu:<vendorID>:<deviceID>:<deviceName>
-//
-// Example:
-//   gpu:0x5143:0x06050002:Adreno (TM) 650
-//
-// Exit code:
-//   0   Vulkan available, info printed
-//   1   Vulkan not available / error
-//   2   Vulkan loaded but no devices
+// matuncnn-native: JNI bridge for Vulkan GPU probe.
+// Called from VulkanHelper.kt to detect Adreno via Vulkan API
+// (more reliable than Build.SOC_MODEL).
 
 #define VK_NO_PROTOTYPES
 #include <vulkan/vulkan.h>
+#include <jni.h>
 #include <dlfcn.h>
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 // ---------------------------------------------------------------------------
-// Minimal dynamic Vulkan loader (no C++ stdlib deps)
+// Dynamic Vulkan loader
 // ---------------------------------------------------------------------------
 
 struct VkLoader {
     void* lib = nullptr;
-
     PFN_vkCreateInstance pCreateInstance = nullptr;
     PFN_vkDestroyInstance pDestroyInstance = nullptr;
     PFN_vkEnumeratePhysicalDevices pEnumeratePhysicalDevices = nullptr;
@@ -48,20 +36,26 @@ struct VkLoader {
         }
         return true;
     }
-
     void unload() { if (lib) { dlclose(lib); lib = nullptr; } }
 };
 
-int main() {
+// ---------------------------------------------------------------------------
+// JNI: probe Vulkan GPU vendor
+// Returns: JSON array of GPU info, or "[]" on error
+// ---------------------------------------------------------------------------
+
+extern "C" JNIEXPORT jstring JNICALL
+Java_com_matuncnn_app_util_VulkanHelper_nativeProbeVulkan(
+    JNIEnv* env, jclass /*clazz*/)
+{
     VkLoader vl;
     if (!vl.load()) {
-        fprintf(stderr, "[vkinfo] libvulkan.so not found\n");
-        return 1;
+        return env->NewStringUTF("[]");
     }
 
     VkApplicationInfo appInfo{};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "matuncnn-vkinfo";
+    appInfo.pApplicationName = "matuncnn";
     appInfo.apiVersion = VK_MAKE_VERSION(1, 1, 0);
 
     VkInstanceCreateInfo ci{};
@@ -70,20 +64,20 @@ int main() {
 
     VkInstance instance = VK_NULL_HANDLE;
     if (vl.pCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
-        fprintf(stderr, "[vkinfo] vkCreateInstance failed\n");
         vl.unload();
-        return 1;
+        return env->NewStringUTF("[]");
     }
 
     uint32_t count = 0;
     vl.pEnumeratePhysicalDevices(instance, &count, nullptr);
     if (count == 0) {
-        fprintf(stderr, "[vkinfo] No Vulkan physical devices\n");
         vl.pDestroyInstance(instance, nullptr);
         vl.unload();
-        return 2;
+        return env->NewStringUTF("[]");
     }
 
+    // Build JSON array
+    std::string json = "[";
     VkPhysicalDevice devices[8];
     if (count > 8) count = 8;
     vl.pEnumeratePhysicalDevices(instance, &count, devices);
@@ -91,12 +85,16 @@ int main() {
     for (uint32_t i = 0; i < count; i++) {
         VkPhysicalDeviceProperties props{};
         vl.pGetPhysicalDeviceProperties(devices[i], &props);
-        // Machine-readable: java parses "gpu:" lines
-        printf("gpu:0x%x:0x%x:%s\n",
-               props.vendorID, props.deviceID, props.deviceName);
+        if (i > 0) json += ",";
+        json += "{\"vendorID\":" + std::to_string(props.vendorID);
+        json += ",\"deviceID\":" + std::to_string(props.deviceID);
+        json += ",\"apiVersion\":" + std::to_string(props.apiVersion);
+        json += ",\"name\":\"" + std::string(props.deviceName) + "\"}";
     }
+    json += "]";
 
     vl.pDestroyInstance(instance, nullptr);
     vl.unload();
-    return 0;
+
+    return env->NewStringUTF(json.c_str());
 }
