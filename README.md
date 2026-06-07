@@ -9,13 +9,12 @@ Android native image upscaler powered by [ncnn](https://github.com/Tencent/ncnn)
 ## Screenshots
 
 <div align="center">
-  <img src=".Screenshots/Screenshot_2026-06-07-08-55-26-609_com.matuncnn.app.png" width="200" alt="Upscale Tab"/>
-  <img src=".Screenshots/Screenshot_2026-06-07-09-01-08-034_com.matuncnn.app.png" width="200" alt="Output Preview"/>
-  <img src="screenshots/settings.png" width="200" alt="Settings"/>
-  <img src="screenshots/log.png" width="200" alt="Debug Log"/>
+  <img src=".Screenshots/Screenshot_2026-06-07-08-55-26-609_com.matuncnn.app.png" width="130" alt="Upscale Tab"/>
+  <img src=".Screenshots/Screenshot_2026-06-07-09-01-08-034_com.matuncnn.app.png" width="130" alt="Output Preview"/>
+  <img src=".Screenshots/Screenshot_2026-06-07-09-05-35-186_com.matuncnn.app.png" width="130" alt="Debug Log"/>
 </div>
 
-> Screenshots taken on Mali-G52 | 4Gigs
+> Screenshots taken on Mali-G52 | 4gb
 
 ---
 
