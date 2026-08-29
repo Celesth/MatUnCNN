@@ -20,10 +20,20 @@ Android native image upscaler powered by [ncnn](https://github.com/Tencent/ncnn)
 
 ## Features
 
+<<<<<<< HEAD
 - **AI Image Upscaling** — select from multiple ncnn models (Real-ESRGAN, RealSR, etc.)
 - **Vulkan GPU Acceleration** — automatic Vulkan detection; falls back to CPU gracefully
 - **Progress Tracking** — real-time ETA and percentage parsed from ncnn stdout
 - **Output Preview** — pinch-to-zoom viewer with image metadata; save or share the result
+=======
+- **AI Image Upscaling** — select from multiple ncnn models (Real-ESRGAN, etc.)
+- **Vulkan GPU Acceleration** — automatic Vulkan detection; falls back gracefully
+  - **Background Processing** — foreground service keeps upscaling running while the app is in the background
+- **Batch Processing** — upscale multiple images in one run
+- **Progress Tracking** — real-time percentage, elapsed time and ETA from ncnn stdout
+- **Before/After Compare** — slider to compare the original and upscaled image inline
+- **Output Preview** — view and compare inline; save or share the result
+>>>>>>> f7dabff (i forgot, what this was about)
 - **Result Caching** — in-memory LRU cache avoids redundant processing
 - **Noexec Bypass** — runs binaries on noexec-mounted filesystems via `/proc/self/fd`
 - **Dynamic Asset Download** — model `.bin`/`.param` files fetched from GitHub Releases on first launch

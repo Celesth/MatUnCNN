@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -20,6 +21,30 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+<<<<<<< HEAD
+=======
+import java.io.File
+
+data class RunTask(
+    val id: Int,
+    val command: String,
+    val workingDir: String,
+    val outputPath: String? = null,
+    val cacheKey: String? = null,
+    val scaleText: String = "",
+    val inputUri: Uri? = null,
+    val inputFilePath: String? = null,
+    val inputFileName: String = "",
+    val extraSetup: String = ""
+)
+
+interface TaskCallback {
+    fun onProgress(line: String)
+    fun onTaskCompleted(task: RunTask, success: Boolean)
+    fun onAllCompleted(allSuccess: Boolean)
+    fun onError(error: String)
+}
+>>>>>>> f7dabff (i forgot, what this was about)
 
 class ProcessingService : Service() {
     private val binder = LocalBinder()

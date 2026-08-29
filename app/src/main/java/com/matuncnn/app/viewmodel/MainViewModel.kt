@@ -355,6 +355,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     }
 
+<<<<<<< HEAD
                     override fun onError(error: String) {
                         _uiState.update {
                             it.copy(
@@ -362,9 +363,82 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                                 statusMessage = "Error: $error"
                             )
                         }
+=======
+                if (settings.showFinalCommand) {
+                    DebugLog.log("Cmd", finalCmd)
+                    progressLogHelper.appendLine("> $finalCmd")
+                }
+
+                val cacheKey = UpscaleCache.buildKey(
+                    job.uri?.toString() ?: job.path ?: job.baseName,
+                    template,
+                    4
+                )
+                val cached = UpscaleCache.get(cacheKey)
+                if (cached != null && File(cached).exists()) {
+                    DebugLog.log("Cache", "HIT: $cacheKey -> $cached")
+                    _uiState.update {
+                        it.copy(
+                            outputFilePath = cached,
+                            outputImageExists = true,
+                            scaleText = scaleText,
+                            batchIndex = i + 1,
+                            inputUri = job.uri ?: it.inputUri,
+                            inputFilePath = job.path ?: it.inputFilePath,
+                            inputFileName = job.baseName.ifBlank { it.inputFileName }
+                        )
+>>>>>>> f7dabff (i forgot, what this was about)
                     }
                 }
+<<<<<<< HEAD
             )
+=======
+
+                tasks.add(
+                    RunTask(
+                        id = i,
+                        command = finalCmd,
+                        workingDir = app.workDir,
+                        outputPath = outputPath,
+                        cacheKey = cacheKey,
+                        scaleText = scaleText,
+                        inputUri = job.uri,
+                        inputFilePath = job.path,
+                        inputFileName = job.baseName
+                    )
+                )
+            }
+
+            if (tasks.isEmpty()) {
+                _uiState.update {
+                    it.copy(isProcessing = false, statusMessage = "All inputs already cached or invalid")
+                }
+                return@launch
+            }
+
+            _uiState.update { it.copy(batchTotal = tasks.size) }
+            pendingStart = PreparedRun(tasks)
+
+            val intent = Intent(context, ProcessingService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+
+            val bound = try {
+                context.bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE)
+            } catch (e: Exception) {
+                DebugLog.log("Service", "Bind failed: ${e.message}")
+                false
+            }
+
+            if (!bound) {
+                context.stopService(intent)
+                pendingStart = null
+                runInline(tasks)
+            }
+>>>>>>> f7dabff (i forgot, what this was about)
         }
     }
 
@@ -488,6 +562,258 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+<<<<<<< HEAD
+=======
+    // ─── Processing helpers ─────────────────────────────────────
+
+    private fun buildJobs(state: MainUiState, context: Context): List<JobInput> {
+        if (state.isMultipleFiles && state.selectedUris.isNotEmpty()) {
+            return state.selectedUris.map { uri ->
+                JobInput(
+                    uri = uri,
+                    path = UriUtils.getPathFromUri(uri, context),
+                    baseName = UriUtils.getFileName(uri, context) ?: "image"
+                )
+            }
+        }
+        if (state.inputUri == null && state.inputFilePath == null) return emptyList()
+        return listOf(
+            JobInput(
+                uri = state.inputUri,
+                path = state.inputFilePath,
+                baseName = state.inputFileName.ifBlank {
+                    state.inputUri?.let { UriUtils.getFileName(it, context) } ?: "image"
+                }
+            )
+        )
+    }
+
+    private suspend fun copyInputTo(job: JobInput, context: Context, dest: File): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                when {
+                    job.uri != null -> context.contentResolver.openInputStream(job.uri)?.use { input ->
+                        dest.outputStream().use { out -> input.copyTo(out) }
+                    } ?: return@withContext false
+                    job.path != null && File(job.path).exists() -> File(job.path).inputStream().use { input ->
+                        dest.outputStream().use { out -> input.copyTo(out) }
+                    }
+                    else -> return@withContext false
+                }
+                true
+            } catch (e: Exception) {
+                DebugLog.log("Input", "copy failed: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private suspend fun ensurePng(file: File): Boolean {
+        if (!PreprocessToPng.needsConversion(file.absolutePath)) return true
+        return withContext(Dispatchers.IO) {
+            try {
+                val bmp = BitmapFactory.decodeFile(file.absolutePath) ?: return@withContext false
+                val ok = file.outputStream().use { out ->
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                bmp.recycle()
+                ok
+            } catch (e: Exception) {
+                DebugLog.log("Preprocess", "PNG conversion failed: ${e.message}")
+                false
+            }
+        }
+    }
+
+    private fun buildOutputPath(settings: AppSettings, inputBaseName: String, index: Int): String {
+        val defaultSaveDir = Environment.getExternalStorageDirectory()
+            .absolutePath + File.separator + Environment.DIRECTORY_DCIM + File.separator + "MatUnCNN"
+        val saveDir = if (settings.savePath.isNotBlank()) settings.savePath else defaultSaveDir
+        File(saveDir).mkdirs()
+
+        val ext = when (settings.format) {
+            1 -> "jpg"
+            2 -> "webp"
+            3 -> "bmp"
+            else -> "png"
+        }
+        val base = when (settings.name) {
+            0 -> inputBaseName.substringBeforeLast('.').take(60) + "_upscaled"
+            1 -> "upscaled_" + SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            else -> {
+                val max = File(saveDir).listFiles()
+                    ?.filter { it.isFile && it.name.startsWith("upscaled_") }
+                    ?.mapNotNull { it.name.removePrefix("upscaled_").substringBefore('.').toIntOrNull() }
+                    ?.maxOrNull() ?: 0
+                "upscaled_%03d".format(max + 1 + index)
+            }
+        }
+
+        var candidate = "$saveDir/$base.$ext"
+        var n = 1
+        while (File(candidate).exists()) {
+            candidate = "$saveDir/${base}_$n.$ext"
+            n++
+        }
+        return candidate
+    }
+
+    private fun buildFinalCommand(
+        template: String,
+        inputPath: String,
+        outputPath: String,
+        settings: AppSettings,
+        cpuForced: Boolean
+    ): String {
+        var cmd = template
+            .replace("input.png", inputPath)
+            .replace("output.png", outputPath)
+        if (isNcnnCommand(cmd)) {
+            if (cpuForced) cmd = "$cmd -g -1"
+            if (settings.tileSize > 0) cmd = "$cmd -t ${settings.tileSize}"
+            if (settings.threadCount.isNotBlank()) cmd = "$cmd -j ${settings.threadCount}"
+        }
+        return cmd
+    }
+
+    private fun parseScale(cmd: String): String {
+        val m = Regex("-s\\s+(\\d+)").find(cmd)
+        return if (m != null) "x${m.groupValues[1]}" else ""
+    }
+
+    private fun createTaskCallback(): TaskCallback = object : TaskCallback {
+        override fun onProgress(line: String) {
+            progressLogHelper.appendLine(line)
+            val elapsed = progressLogHelper.elapsedTimeSeconds
+            val pct = parsePercent(progressLogHelper.progressText)
+            val eta = if (pct > 0) ((elapsed * (100 - pct) / pct).toLong()) else 0L
+            _uiState.update {
+                it.copy(
+                    logText = progressLogHelper.displayText,
+                    progressText = progressLogHelper.progressText,
+                    elapsedSeconds = elapsed,
+                    etaSeconds = eta
+                )
+            }
+        }
+
+        override fun onTaskCompleted(task: RunTask, success: Boolean) {
+            if (success && task.outputPath != null) {
+                val outFile = File(task.outputPath)
+                if (outFile.exists() && outFile.length() > 0) {
+                    task.cacheKey?.let { UpscaleCache.put(it, task.outputPath) }
+                    _uiState.update {
+                        it.copy(
+                            outputFilePath = task.outputPath,
+                            outputImageExists = true,
+                            scaleText = task.scaleText,
+                            batchIndex = task.id + 1,
+                            inputUri = task.inputUri ?: it.inputUri,
+                            inputFilePath = task.inputFilePath ?: it.inputFilePath,
+                            inputFileName = task.inputFileName.ifBlank { it.inputFileName }
+                        )
+                    }
+                    if (_uiState.value.settings.autoSave) {
+                        saveFileToGallery(outFile)
+                    }
+                } else {
+                    DebugLog.log("Output", "File missing or empty: ${task.outputPath}")
+                }
+            } else {
+                _uiState.update { it.copy(batchIndex = task.id + 1) }
+            }
+        }
+
+        override fun onAllCompleted(allSuccess: Boolean) {
+            finishProcessing(allSuccess)
+        }
+
+        override fun onError(error: String) {
+            DebugLog.log("Error", error)
+            _uiState.update { it.copy(statusMessage = "Error: $error") }
+        }
+    }
+
+    private suspend fun runInline(tasks: List<RunTask>) {
+        val callback = createTaskCallback()
+        var allOk = true
+        for (task in tasks) {
+            if (userCancelled) break
+            var taskOk = false
+            imageProcessor.executeCommand(
+                command = task.command,
+                workingDir = task.workingDir,
+                extraSetup = task.extraSetup,
+                outputFile = task.outputPath?.let { File(it) },
+                callback = object : ImageProcessor.ProcessCallback {
+                    override fun onProgress(line: String) { callback.onProgress(line) }
+                    override fun onCompleted(result: String, success: Boolean) { taskOk = success }
+                    override fun onError(error: String) { callback.onError(error) }
+                }
+            )
+            callback.onTaskCompleted(task, taskOk)
+            if (!taskOk) allOk = false
+        }
+        callback.onAllCompleted(allOk)
+    }
+
+    private fun finishProcessing(allSuccess: Boolean) {
+        val summary = progressLogHelper.getCompletionSummary(allSuccess, isNcnnCommand = true)
+        _uiState.update {
+            it.copy(
+                isProcessing = false,
+                logText = progressLogHelper.displayText + summary,
+                statusMessage = when {
+                    userCancelled -> "Cancelled"
+                    !allSuccess -> "Failed!"
+                    !it.outputImageExists -> "Failed: output file is empty"
+                    else -> "Complete!"
+                }
+            )
+        }
+        boundService = null
+        val context = getApplication<Application>()
+        mainHandler.post {
+            try {
+                context.unbindService(serviceConnection)
+            } catch (_: Exception) {
+            }
+            context.stopService(Intent(context, ProcessingService::class.java))
+        }
+    }
+
+    private fun parsePercent(text: String): Float {
+        val v = text.trim().removeSuffix("%").toFloatOrNull() ?: return 0f
+        return v.coerceIn(0f, 100f)
+    }
+
+    private fun saveFileToGallery(file: File): Boolean {
+        val context = getApplication<Application>()
+        return try {
+            val mime = when (file.extension.lowercase()) {
+                "jpg", "jpeg" -> "image/jpeg"
+                "webp" -> "image/webp"
+                "bmp" -> "image/bmp"
+                else -> "image/png"
+            }
+            val values = android.content.ContentValues().apply {
+                put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, file.name)
+                put(android.provider.MediaStore.Images.Media.MIME_TYPE, mime)
+            }
+            val uri = context.contentResolver.insert(
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values
+            ) ?: return false
+            context.contentResolver.openOutputStream(uri)?.use { out ->
+                file.inputStream().use { it.copyTo(out) }
+            }
+            true
+        } catch (e: Exception) {
+            DebugLog.log("Save", "gallery save failed: ${e.message}")
+            false
+        }
+    }
+
+>>>>>>> f7dabff (i forgot, what this was about)
     override fun onCleared() {
         super.onCleared()
         imageProcessor.shutdown()
